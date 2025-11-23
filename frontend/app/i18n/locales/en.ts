@@ -1,0 +1,57 @@
+// English translations
+export const en = {
+  // Chat input
+  chatInput: {
+    placeholder: {
+      waiting: 'Waiting for response...',
+      default: 'Say something...',
+    },
+    button: {
+      send: 'Send',
+      abort: 'Abort',
+    },
+    title: {
+      send: 'Send message',
+      abort: 'Stop response',
+    },
+  },
+  // Error messages
+  error: {
+    prefix: 'Error:',
+  },
+  // Chat stream
+  chatStream: {
+    thinking: 'Thinking...',
+    userAborted: 'User aborted',
+  },
+  // Message bubble
+  messageBubble: {
+    copy: 'Copy',
+    copied: 'Copied!',
+    copyTitle: 'Copy to clipboard',
+  },
+  // Settings
+  settings: {
+    menu: 'Settings',
+    title: 'Settings',
+    close: 'Close',
+    language: 'Language',
+  },
+  // Welcome screen
+  welcome: {
+    title: 'AI Studio 2.0',
+    examples: [
+      'Create a simple web crawler in Python',
+      'How to optimize React components',
+      'Design a REST API with FastAPI',
+      'Understanding TypeScript type system',
+      'Docker container deployment guide',
+      'Machine learning model evaluation metrics',
+      'Database normalization principles',
+      'Git branching strategy comparison',
+      'Web security best practices',
+      'Microservices architecture design',
+    ],
+  },
+} as const;
+

@@ -1,0 +1,65 @@
+# ============================================
+# Development Dockerfile (with debugging tools)
+# ============================================
+
+FROM python:3.14-slim AS development
+
+# Install system dependencies and debugging tools
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    vim \
+    less \
+    gdb \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+WORKDIR /app
+
+# Copy dependency files
+COPY pyproject.toml ./
+
+# Create virtual environment
+RUN uv venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Install dependencies without editable install (app directory doesn't exist yet)
+RUN uv pip install --no-cache \
+    fastapi \
+    uvicorn \
+    openai
+
+# Install development and debugging tools
+RUN uv pip install --no-cache \
+    debugpy \
+    ipython \
+    ipdb \
+    pytest \
+    pytest-asyncio \
+    black \
+    ruff
+
+# Copy application code
+COPY . .
+
+# Now install the package in editable mode
+RUN uv pip install --no-cache -e .
+
+# Set environment variables for development
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONBREAKPOINT=ipdb.set_trace
+
+# Expose ports
+# 8000: FastAPI server
+# 5678: Python debugger (debugpy)
+EXPOSE 8000 5678
+
+# Run the application with hot reload and debugging support
+# --reload: Enable auto-reload on code changes
+# --reload-dir: Watch specific directories
+# --reload-include: Watch specific file patterns
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/app", "--reload-include", "*.py"]
+

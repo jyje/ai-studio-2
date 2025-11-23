@@ -1,0 +1,43 @@
+name: ai-studio-2
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ai-studio-2-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - LLM_API_BASE_URL=${LLM_API_BASE_URL:-https://guest-api.sktax.chat/v1}
+      - LLM_API_KEY=${LLM_API_KEY:-sktax-XyeKFrq67ZjS4EpsDlrHHXV8it}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME:-ax4}
+    networks:
+      - ai-studio-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: ai-studio-2-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:8000
+      - NODE_ENV=production
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ai-studio-network
+    restart: unless-stopped
+
+networks:
+  ai-studio-network:
+    driver: bridge

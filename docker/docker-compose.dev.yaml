@@ -1,0 +1,53 @@
+name: ai-studio-2-dev
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.dev
+    container_name: ai-studio-2-backend-dev
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # Python debugger port (debugpy)
+    environment:
+      - LLM_API_BASE_URL=${LLM_API_BASE_URL:-https://guest-api.sktax.chat/v1}
+      - LLM_API_KEY=${LLM_API_KEY:-sktax-XyeKFrq67ZjS4EpsDlrHHXV8it}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME:-ax4}
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    volumes:
+      # Mount source code for hot reload
+      - ../backend:/app
+      - /app/.venv  # Prevent overwriting virtual environment
+    networks:
+      - ai-studio-network
+    restart: unless-stopped
+    # Hot reload is enabled in Dockerfile.dev via --reload flag
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    container_name: ai-studio-2-frontend-dev
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debugger port
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:8000
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true  # Enable file watching in Docker
+    volumes:
+      # Mount source code for hot reload
+      - ../frontend:/app
+      - /app/node_modules  # Prevent overwriting node_modules
+      - /app/.next  # Prevent overwriting .next directory
+    depends_on:
+      - backend
+    networks:
+      - ai-studio-network
+    restart: unless-stopped
+    # Enable debugging
+    command: npm run dev -- --turbo
+
+networks:
+  ai-studio-network:
+    driver: bridge

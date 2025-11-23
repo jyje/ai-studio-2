@@ -1,0 +1,39 @@
+# ============================================
+# Development Dockerfile (with debugging tools)
+# ============================================
+
+FROM node:24-alpine AS development
+
+WORKDIR /app
+
+# Install development tools and debugging utilities
+RUN apk add --no-cache \
+        git \
+        curl \
+        vim \
+        less \
+    && npm install -g \
+        nodemon \
+        @next/bundle-analyzer
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install all dependencies (including devDependencies)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Expose ports
+# 3000: Next.js dev server
+# 9229: Node.js debugger
+EXPOSE 3000 9229
+
+# Set environment variables for development
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Run development server with debugging support
+# Use --inspect for Node.js debugging
+CMD ["npm", "run", "dev", "--", "--turbo"]
