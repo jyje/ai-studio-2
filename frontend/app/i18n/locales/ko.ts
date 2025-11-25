@@ -19,6 +19,24 @@ export const ko = {
       agent: '에이전트',
     },
   },
+  // File upload
+  fileUpload: {
+    button: {
+      title: '파일 첨부',
+    },
+    dragDrop: {
+      hint: '파일을 여기에 놓으세요',
+    },
+    status: {
+      parsing: '처리 중...',
+      error: '오류',
+    },
+    error: {
+      tooLarge: '파일이 너무 큽니다 (최대 10MB)',
+      unsupported: '지원하지 않는 파일 형식입니다',
+      parseFailed: '파일 처리에 실패했습니다',
+    },
+  },
   // Error messages
   error: {
     prefix: '오류:',
