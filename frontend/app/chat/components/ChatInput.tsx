@@ -3,6 +3,9 @@
 import { useTranslation } from '@/app/i18n/hooks/useTranslation';
 import { useEffect, useRef, useState } from 'react';
 import { fetchModelInfo, ModelInfo } from '@/app/config';
+import { FileUploadState } from '../hooks/useFileUpload';
+import FileUploadButton from './FileUploadButton';
+import AttachedFileList from './AttachedFileList';
 
 interface ChatInputProps {
   value: string;
@@ -11,6 +14,10 @@ interface ChatInputProps {
   isLoading: boolean;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
   onAbort?: () => void;
+  // File upload props
+  files?: FileUploadState[];
+  onFilesSelected?: (files: FileList) => void;
+  onRemoveFile?: (id: string) => void;
 }
 
 export default function ChatInput({
@@ -20,10 +27,14 @@ export default function ChatInput({
   isLoading,
   inputRef,
   onAbort,
+  files = [],
+  onFilesSelected,
+  onRemoveFile,
 }: ChatInputProps) {
   const { t } = useTranslation();
   const hasInput = value.trim().length > 0;
-  const showSendButton = !isLoading && hasInput;
+  const hasFiles = files.length > 0;
+  const showSendButton = !isLoading && (hasInput || hasFiles);
   const showAbortButton = isLoading && onAbort;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [modelInfo, setModelInfo] = useState<ModelInfo | null>(null);
@@ -64,9 +75,23 @@ export default function ChatInput({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (!isLoading && hasInput) {
+      if (!isLoading && (hasInput || hasFiles)) {
         onSubmit(e as any);
       }
+    }
+  };
+
+  // Handle file selection from button
+  const handleFilesSelected = (fileList: FileList) => {
+    if (onFilesSelected) {
+      onFilesSelected(fileList);
+    }
+  };
+
+  // Handle file removal
+  const handleRemoveFile = (id: string) => {
+    if (onRemoveFile) {
+      onRemoveFile(id);
     }
   };
 
@@ -75,7 +100,22 @@ export default function ChatInput({
       onSubmit={onSubmit}
       className="fixed bottom-0 left-0 right-0 w-full max-w-full md:max-w-2xl lg:max-w-4xl mx-auto p-2 mb-8 bg-white/90 dark:bg-[#252526]/95 backdrop-blur-sm border border-gray-300 dark:border-[#3e3e42] rounded-2xl shadow-xl dark:shadow-2xl"
     >
+      {/* Attached files list */}
+      {hasFiles && (
+        <AttachedFileList files={files} onRemove={handleRemoveFile} />
+      )}
+
       <div className="flex items-end">
+        {/* File upload button */}
+        {onFilesSelected && (
+          <div className={`flex-shrink-0 ${modelInfo ? 'mb-6' : ''}`}>
+            <FileUploadButton
+              onFilesSelected={handleFilesSelected}
+              disabled={isLoading}
+            />
+          </div>
+        )}
+
         <div className="flex-1 flex flex-col">
           <textarea
             ref={(node) => {
@@ -146,4 +186,3 @@ export default function ChatInput({
     </form>
   );
 }
-

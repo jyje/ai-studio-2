@@ -19,6 +19,24 @@ export const en = {
       agent: 'Agent',
     },
   },
+  // File upload
+  fileUpload: {
+    button: {
+      title: 'Attach file',
+    },
+    dragDrop: {
+      hint: 'Drop files here',
+    },
+    status: {
+      parsing: 'Processing...',
+      error: 'Error',
+    },
+    error: {
+      tooLarge: 'File is too large (max 10MB)',
+      unsupported: 'Unsupported file type',
+      parseFailed: 'Failed to process file',
+    },
+  },
   // Error messages
   error: {
     prefix: 'Error:',

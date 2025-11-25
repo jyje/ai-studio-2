@@ -1,8 +1,11 @@
+import { ParsedFile } from '../utils/fileParser';
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp?: Date;
+  attachedFiles?: ParsedFile[]; // For display purposes
 }
 
 export interface ChatStreamOptions {
@@ -15,7 +18,7 @@ export interface ChatStreamReturn {
   messages: Message[];
   isLoading: boolean;
   error: Error | null;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, files?: ParsedFile[]) => Promise<void>;
   addMessage: (message: Message) => void;
   abort: () => void;
   clearError: () => void;

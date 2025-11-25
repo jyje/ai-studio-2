@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Message, ChatStreamOptions, ChatStreamReturn } from './types';
+import { ParsedFile, formatFilesForPrompt } from '../utils/fileParser';
 
 export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
   const { apiUrl, onError, t } = options;
@@ -18,14 +19,33 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   };
 
-  const sendMessage = async (content: string) => {
-    if (!content.trim() || isLoading) return;
+  const sendMessage = async (content: string, files?: ParsedFile[]) => {
+    const hasContent = content.trim().length > 0;
+    const hasFiles = files && files.length > 0;
+    
+    if ((!hasContent && !hasFiles) || isLoading) return;
+
+    // Format the message content with attached files
+    const filesPrefix = hasFiles ? formatFilesForPrompt(files) : '';
+    const displayContent = content.trim();
+    const augmentedContent = filesPrefix + displayContent;
+    
+    // Debug: Log the augmented content to verify files are included
+    console.log('[ChatStream] Augmented prompt:', {
+      hasFiles,
+      fileCount: files?.length || 0,
+      filesPrefixLength: filesPrefix.length,
+      displayContentLength: displayContent.length,
+      augmentedContentLength: augmentedContent.length,
+      preview: augmentedContent.substring(0, 500),
+    });
 
     const userMessage: Message = {
       id: generateMessageId(),
       role: 'user',
-      content: content.trim(),
+      content: displayContent, // Display only user's input
       timestamp: new Date(),
+      attachedFiles: files, // Store attached files for reference
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -59,7 +79,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: userMessage.content,
+          message: augmentedContent, // Send augmented content with file data
         }),
         signal: abortController.signal,
       });
