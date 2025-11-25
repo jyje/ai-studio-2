@@ -12,11 +12,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #1e1e1e;
+  --foreground: #d4d4d4;
+  --color-background: #1e1e1e;
+  --color-foreground: #d4d4d4;
 }
 
 body {
@@ -25,32 +25,169 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Thinking message shine animation */
-@keyframes thinking-shine {
-  0% {
-    background-position: -200% center;
+/* Force dark mode styles when .dark class is present */
+.dark {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+}
+
+.dark * {
+  border-color: #3e3e42;
+}
+
+/* Ensure text is visible in dark mode */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark p,
+.dark span,
+.dark div,
+.dark li,
+.dark td,
+.dark th {
+  color: inherit;
+}
+
+/* Chat input form - force dark mode */
+.dark form.fixed {
+  background-color: rgba(37, 37, 38, 0.95) !important;
+  border-color: #3e3e42 !important;
+}
+
+.dark form.fixed textarea {
+  background-color: transparent !important;
+  color: #d4d4d4 !important;
+}
+
+.dark form.fixed textarea::placeholder {
+  color: #858585 !important;
+}
+
+.dark form.fixed .text-gray-500 {
+  color: #858585 !important;
+}
+
+.dark form.fixed .text-gray-300 {
+  color: #3e3e42 !important;
+}
+
+/* Example prompt buttons - force dark mode */
+.dark button.text-left.rounded-xl {
+  background-color: #252526 !important;
+  border-color: #3e3e42 !important;
+}
+
+.dark button.text-left.rounded-xl:hover {
+  background-color: #2d2d30 !important;
+}
+
+.dark button.text-left.rounded-xl span {
+  color: #cccccc !important;
+}
+
+/* Settings button (more options) - force dark mode */
+.dark div[class*="fixed"][class*="top-4"][class*="right-4"] button,
+.dark div.fixed.top-4.right-4 button,
+.dark .fixed.top-4.right-4 > button,
+.dark button[class*="rounded-lg"][class*="p-2"][class*="bg-white"] {
+  background-color: rgba(37, 37, 38, 0.95) !important;
+  border-color: #3e3e42 !important;
+}
+
+.dark div[class*="fixed"][class*="top-4"][class*="right-4"] button:hover,
+.dark div.fixed.top-4.right-4 button:hover,
+.dark .fixed.top-4.right-4 > button:hover,
+.dark button[class*="rounded-lg"][class*="p-2"][class*="bg-white"]:hover {
+  background-color: #2d2d30 !important;
+}
+
+.dark div[class*="fixed"][class*="top-4"][class*="right-4"] button svg,
+.dark div.fixed.top-4.right-4 button svg,
+.dark .fixed.top-4.right-4 > button svg,
+.dark button[class*="rounded-lg"][class*="p-2"][class*="bg-white"] svg {
+  color: #cccccc !important;
+}
+
+/* Context menu - force dark mode */
+.dark div[class*="absolute"][class*="top-12"] {
+  background-color: #252526 !important;
+  border-color: #3e3e42 !important;
+}
+
+.dark div[class*="absolute"][class*="top-12"] button {
+  color: #cccccc !important;
+}
+
+.dark div[class*="absolute"][class*="top-12"] button:hover {
+  background-color: #2d2d30 !important;
+}
+
+.dark div[class*="absolute"][class*="top-12"] button svg {
+  color: #858585 !important;
+}
+
+/* Settings modal - force dark mode */
+.dark div[class*="fixed"][class*="inset-0"][class*="bg-black"] {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] {
+  background-color: #252526 !important;
+  border-color: #3e3e42 !important;
+}
+
+.dark div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] h2 {
+  color: #cccccc !important;
+}
+
+.dark div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] button svg {
+  color: #858585 !important;
+}
+
+.dark div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] label {
+  color: #cccccc !important;
+}
+
+.dark div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] label[class*="flex"] {
+  border-color: #3e3e42 !important;
+}
+
+.dark div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] label[class*="flex"]:hover {
+  background-color: #2d2d30 !important;
+}
+
+.dark div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] label[class*="flex"] span {
+  color: #cccccc !important;
+}
+
+.dark div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] button[class*="p-1"]:hover {
+  background-color: #2d2d30 !important;
+}
+
+/* Thinking message wave animation - Cursor.ai style */
+@keyframes thinking-wave {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.6;
   }
-  100% {
-    background-position: 200% center;
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
   }
 }
 
 .thinking-glow {
-  background: linear-gradient(
-    90deg,
-    #000 0%,
-    #000 40%,
-    #3b82f6 50%,
-    #60a5fa 52%,
-    #3b82f6 54%,
-    #000 60%,
-    #000 100%
-  );
-  background-size: 200% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: thinking-shine 1s linear infinite;
+  display: inline-block;
+  animation: thinking-wave 1.5s ease-in-out infinite;
+  will-change: transform, opacity;
+  color: #6b7280;
+}
+
+.dark .thinking-glow {
+  color: #858585;
 }
 
 /* Word breaking for long URLs and text */
@@ -58,6 +195,15 @@ body {
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  color: inherit;
+}
+
+.dark .markdown-content {
+  color: #d4d4d4;
 }
 
 .markdown-content a {
@@ -78,4 +224,181 @@ body {
 /* Remove focus outline from messages container */
 [tabindex="0"]:focus {
   outline: none;
+}
+
+/* KaTeX LaTeX math rendering styles */
+.markdown-content .katex {
+  font-size: 1.1em;
+}
+
+.markdown-content .katex-display {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Ensure LaTeX equations don't break layout */
+.markdown-content .katex-display > .katex {
+  display: inline-block;
+  text-align: initial;
+}
+
+/* Light mode support for KaTeX - force all elements to be dark */
+/* Place at end of file to override KaTeX CSS loaded from node_modules */
+/* Use maximum specificity to override KaTeX default styles */
+html:not(.dark) .markdown-content .katex,
+html:not(.dark) .markdown-content .katex *,
+html:not(.dark) .katex,
+html:not(.dark) .katex *,
+html:not(.dark) [class*="katex"],
+html:not(.dark) [class*="katex"] *,
+html:not(.dark) math,
+html:not(.dark) math *,
+html:not(.dark) .markdown-content math,
+html:not(.dark) .markdown-content math * {
+  color: #171717 !important;
+  fill: #171717 !important;
+}
+
+/* Dark mode support for KaTeX - force all elements to be light */
+html.dark .markdown-content .katex,
+html.dark .markdown-content .katex *,
+html.dark .katex,
+html.dark .katex *,
+html.dark [class*="katex"],
+html.dark [class*="katex"] *,
+html.dark math,
+html.dark math *,
+html.dark .markdown-content math,
+html.dark .markdown-content math * {
+  color: #d4d4d4 !important;
+  fill: #d4d4d4 !important;
+}
+
+/* Override KaTeX default colors with maximum specificity - Light mode */
+html:not(.dark) .katex-display,
+html:not(.dark) .katex-display *,
+html:not(.dark) .katex .base,
+html:not(.dark) .katex .base *,
+html:not(.dark) .markdown-content .katex .base,
+html:not(.dark) .markdown-content .katex .base * {
+  color: #171717 !important;
+  fill: #171717 !important;
+}
+
+/* Override KaTeX default colors with maximum specificity - Dark mode */
+html.dark .katex-display,
+html.dark .katex-display *,
+html.dark .katex .base,
+html.dark .katex .base *,
+html.dark .markdown-content .katex .base,
+html.dark .markdown-content .katex .base * {
+  color: #d4d4d4 !important;
+  fill: #d4d4d4 !important;
+}
+
+/* Override all KaTeX math element classes - Light mode */
+html:not(.dark) .markdown-content .katex .mord,
+html:not(.dark) .katex .mord,
+html:not(.dark) [class*="katex"] .mord,
+html:not(.dark) .markdown-content .katex .mop,
+html:not(.dark) .katex .mop,
+html:not(.dark) [class*="katex"] .mop,
+html:not(.dark) .markdown-content .katex .mbin,
+html:not(.dark) .katex .mbin,
+html:not(.dark) [class*="katex"] .mbin,
+html:not(.dark) .markdown-content .katex .mrel,
+html:not(.dark) .katex .mrel,
+html:not(.dark) [class*="katex"] .mrel,
+html:not(.dark) .markdown-content .katex .mopen,
+html:not(.dark) .katex .mopen,
+html:not(.dark) [class*="katex"] .mopen,
+html:not(.dark) .markdown-content .katex .mclose,
+html:not(.dark) .katex .mclose,
+html:not(.dark) [class*="katex"] .mclose,
+html:not(.dark) .markdown-content .katex .mpunct,
+html:not(.dark) .katex .mpunct,
+html:not(.dark) [class*="katex"] .mpunct,
+html:not(.dark) .markdown-content .katex .msupsub,
+html:not(.dark) .katex .msupsub,
+html:not(.dark) [class*="katex"] .msupsub,
+html:not(.dark) .markdown-content .katex .mfrac,
+html:not(.dark) .katex .mfrac,
+html:not(.dark) [class*="katex"] .mfrac,
+html:not(.dark) .markdown-content .katex .sqrt,
+html:not(.dark) .katex .sqrt,
+html:not(.dark) [class*="katex"] .sqrt,
+html:not(.dark) .markdown-content .katex .mspace,
+html:not(.dark) .katex .mspace,
+html:not(.dark) [class*="katex"] .mspace {
+  color: #171717 !important;
+  fill: #171717 !important;
+}
+
+/* Override all KaTeX math element classes - Dark mode */
+html.dark .markdown-content .katex .mord,
+html.dark .katex .mord,
+html.dark [class*="katex"] .mord,
+html.dark .markdown-content .katex .mop,
+html.dark .katex .mop,
+html.dark [class*="katex"] .mop,
+html.dark .markdown-content .katex .mbin,
+html.dark .katex .mbin,
+html.dark [class*="katex"] .mbin,
+html.dark .markdown-content .katex .mrel,
+html.dark .katex .mrel,
+html.dark [class*="katex"] .mrel,
+html.dark .markdown-content .katex .mopen,
+html.dark .katex .mopen,
+html.dark [class*="katex"] .mopen,
+html.dark .markdown-content .katex .mclose,
+html.dark .katex .mclose,
+html.dark [class*="katex"] .mclose,
+html.dark .markdown-content .katex .mpunct,
+html.dark .katex .mpunct,
+html.dark [class*="katex"] .mpunct,
+html.dark .markdown-content .katex .msupsub,
+html.dark .katex .msupsub,
+html.dark [class*="katex"] .msupsub,
+html.dark .markdown-content .katex .mfrac,
+html.dark .katex .mfrac,
+html.dark [class*="katex"] .mfrac,
+html.dark .markdown-content .katex .sqrt,
+html.dark .katex .sqrt,
+html.dark [class*="katex"] .sqrt,
+html.dark .markdown-content .katex .mspace,
+html.dark .katex .mspace,
+html.dark [class*="katex"] .mspace {
+  color: #d4d4d4 !important;
+  fill: #d4d4d4 !important;
+}
+
+/* Force all KaTeX spans, divs, and other elements - Light mode */
+html:not(.dark) .markdown-content .katex span,
+html:not(.dark) .katex span,
+html:not(.dark) [class*="katex"] span,
+html:not(.dark) .markdown-content .katex div,
+html:not(.dark) .katex div,
+html:not(.dark) [class*="katex"] div,
+html:not(.dark) .markdown-content .katex > span,
+html:not(.dark) .katex > span,
+html:not(.dark) .markdown-content .katex > div,
+html:not(.dark) .katex > div {
+  color: #171717 !important;
+  fill: #171717 !important;
+}
+
+/* Force all KaTeX spans, divs, and other elements - Dark mode */
+html.dark .markdown-content .katex span,
+html.dark .katex span,
+html.dark [class*="katex"] span,
+html.dark .markdown-content .katex div,
+html.dark .katex div,
+html.dark [class*="katex"] div,
+html.dark .markdown-content .katex > span,
+html.dark .katex > span,
+html.dark .markdown-content .katex > div,
+html.dark .katex > div {
+  color: #d4d4d4 !important;
+  fill: #d4d4d4 !important;
 }

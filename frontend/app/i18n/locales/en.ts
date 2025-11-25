@@ -14,6 +14,10 @@ export const en = {
       send: 'Send message',
       abort: 'Stop response',
     },
+    info: {
+      model: 'Model',
+      agent: 'Agent',
+    },
   },
   // Error messages
   error: {
@@ -36,6 +40,12 @@ export const en = {
     title: 'Settings',
     close: 'Close',
     language: 'Language',
+    theme: 'Theme',
+    themeOptions: {
+      light: 'Light',
+      dark: 'Dark',
+      system: 'System',
+    },
   },
   // Welcome screen
   welcome: {

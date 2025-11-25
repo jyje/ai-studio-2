@@ -41,3 +41,31 @@ export const getChatApiUrl = (): string => {
   return `${baseUrl}${endpoint}`;
 };
 
+/**
+ * Get info API URL
+ */
+export const getInfoApiUrl = (): string => {
+  const baseUrl = chatConfig.backendBaseUrl.replace(/\/$/, ''); // Remove trailing slash
+  return `${baseUrl}/v2/info`;
+};
+
+/**
+ * Model and agent information interface
+ */
+export interface ModelInfo {
+  model: string;
+  agent: string;
+}
+
+/**
+ * Fetch model and agent information from backend
+ */
+export const fetchModelInfo = async (): Promise<ModelInfo> => {
+  const url = getInfoApiUrl();
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch model info: ${response.statusText}`);
+  }
+  return await response.json();
+};
+

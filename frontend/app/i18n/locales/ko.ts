@@ -14,6 +14,10 @@ export const ko = {
       send: '메시지 전송',
       abort: '응답 중단',
     },
+    info: {
+      model: '모델',
+      agent: '에이전트',
+    },
   },
   // Error messages
   error: {
@@ -36,6 +40,12 @@ export const ko = {
     title: '설정',
     close: '닫기',
     language: '언어',
+    theme: '테마',
+    themeOptions: {
+      light: '라이트',
+      dark: '다크',
+      system: '시스템 설정',
+    },
   },
   // Welcome screen
   welcome: {

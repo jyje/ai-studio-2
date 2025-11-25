@@ -14,7 +14,7 @@ export default function Chat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef<boolean>(true);
-  const { messages, isLoading, error, sendMessage, abort, clearError } = useChatStream({
+  const { messages, isLoading, error, sendMessage, addMessage, abort, clearError } = useChatStream({
     apiUrl: getChatApiUrl(),
     t,
     onError: (err) => {
@@ -205,7 +205,7 @@ export default function Chat() {
       {/* Welcome screen - only show when no messages */}
       {!hasMessages && (
         <div className="flex flex-col items-center justify-center min-h-[60vh] pb-32">
-          <h1 className="text-5xl font-bold mb-12 text-gray-800 dark:text-gray-200">
+          <h1 className="text-5xl font-bold mb-12 text-gray-800 dark:text-[#cccccc]">
             {t('welcome.title')}
           </h1>
           <div className="flex flex-col gap-3 w-full max-w-2xl">
@@ -213,9 +213,9 @@ export default function Chat() {
               <button
                 key={index}
                 onClick={() => handleExampleClick(example)}
-                className="text-left p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm hover:shadow-md cursor-pointer"
+                className="text-left p-4 rounded-xl border border-gray-300 dark:border-[#3e3e42] bg-white dark:bg-[#252526] hover:bg-gray-50 dark:hover:bg-[#2d2d30] transition-colors shadow-sm hover:shadow-md cursor-pointer"
               >
-                <span className="text-gray-700 dark:text-gray-300">{example}</span>
+                <span className="text-gray-700 dark:text-[#cccccc]">{example}</span>
               </button>
             ))}
           </div>
@@ -224,7 +224,7 @@ export default function Chat() {
 
       <div
         ref={messagesContainerRef}
-        className="flex flex-col gap-4 pb-32 outline-none"
+        className="flex flex-col gap-4 pb-32 outline-none select-text"
         onCopy={handleCopy}
         onKeyDown={handleKeyDown}
         tabIndex={0}

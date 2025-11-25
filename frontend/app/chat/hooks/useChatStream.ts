@@ -79,11 +79,15 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
       let accumulatedContent = '';
       let currentEvent = '';
       let isFirstToken = true; // Track if we've received the first token
+      let streamEnded = false; // Flag to track if stream has ended
+      let chunkCount = 0; // Debug: count received chunks
 
-      while (true) {
+      while (!streamEnded) {
         const { done, value } = await reader.read();
 
         if (done) {
+          console.log(`[DEBUG] Reader done. Total chunks: ${chunkCount}, Content length: ${accumulatedContent.length}`);
+          console.log(`[DEBUG] Content preview (last 500 chars):`, accumulatedContent.slice(-500));
           // Process remaining buffer
           if (buffer.trim()) {
             const lines = buffer.split('\n');
@@ -99,6 +103,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
                     } else {
                       accumulatedContent += data;
                     }
+                    chunkCount++;
                   }
                 } catch {
                   if (isFirstToken) {
@@ -107,6 +112,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
                   } else {
                     accumulatedContent += dataStr;
                   }
+                  chunkCount++;
                 }
               }
             }
@@ -120,6 +126,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
               );
             }
           }
+          console.log(`[DEBUG] Final content length: ${accumulatedContent.length}`);
           break;
         }
 
@@ -150,7 +157,10 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
             // Stream started - can log or ignore
             continue;
           } else if (eventType === 'end') {
-            // Stream completed
+            // Stream completed - set flag to exit while loop
+            console.log(`[DEBUG] End event received. Total chunks: ${chunkCount}, Content length: ${accumulatedContent.length}`);
+            console.log(`[DEBUG] Content preview (last 500 chars):`, accumulatedContent.slice(-500));
+            streamEnded = true;
             break;
           } else if (eventType === 'error') {
             // Parse error data
@@ -164,6 +174,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
 
           // Handle data
           if (data) {
+            let processedData = '';
             try {
               // Try to parse as JSON
               const parsedData = JSON.parse(data);
@@ -171,24 +182,32 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
                 throw new Error(parsedData.error);
               } else if (typeof parsedData === 'string') {
                 // String content - first token received
+                processedData = parsedData;
                 if (isFirstToken) {
                   isFirstToken = false;
-                  accumulatedContent = parsedData; // Replace thinking text with first token
+                  accumulatedContent = processedData; // Replace thinking text with first token
                 } else {
-                  accumulatedContent += parsedData;
+                  accumulatedContent += processedData;
                 }
               } else if (parsedData.status === 'completed') {
-                // Stream completed
+                // Stream completed - set flag to exit while loop
+                streamEnded = true;
                 break;
               }
             } catch (parseError) {
               // If not JSON, treat as plain text content
+              processedData = data;
               if (isFirstToken) {
                 isFirstToken = false;
-                accumulatedContent = data; // Replace thinking text with first token
+                accumulatedContent = processedData; // Replace thinking text with first token
               } else {
-                accumulatedContent += data;
+                accumulatedContent += processedData;
               }
+            }
+
+            // Increment chunk count if we processed content
+            if (processedData) {
+              chunkCount++;
             }
 
             // Update message with accumulated content
@@ -259,6 +278,10 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
     setError(null);
   };
 
+  const addMessage = (message: Message) => {
+    setMessages((prev) => [...prev, message]);
+  };
+
   // Cancel request on component unmount
   useEffect(() => {
     return () => {
@@ -273,6 +296,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
     isLoading,
     error,
     sendMessage,
+    addMessage,
     abort,
     clearError,
   };

@@ -11,17 +11,17 @@ export default function ContextMenu({ onSettingsClick, onClose }: ContextMenuPro
   const { t } = useTranslation();
 
   return (
-    <div className="absolute top-12 right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-[10000] pointer-events-auto">
+    <div className="absolute top-12 right-0 mt-2 w-48 bg-white dark:bg-[#252526] rounded-lg shadow-xl dark:shadow-2xl border border-gray-200 dark:border-[#3e3e42] py-1 z-[10000] pointer-events-auto">
       <button
         onClick={(e) => {
           e.stopPropagation();
           onSettingsClick();
           onClose();
         }}
-        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2 cursor-pointer"
+        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#cccccc] hover:bg-gray-100 dark:hover:bg-[#2d2d30] transition-colors flex items-center gap-2 cursor-pointer"
       >
         <svg
-          className="w-4 h-4 text-gray-600"
+          className="w-4 h-4 text-gray-600 dark:text-[#858585]"
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"

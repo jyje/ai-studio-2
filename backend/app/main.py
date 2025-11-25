@@ -26,6 +26,14 @@ client = OpenAI(
 def read_root():
     return {'Hello': 'World'}
 
+@app.get('/v2/info')
+def get_info():
+    """Get model and agent information"""
+    return {
+        'model': LLM_MODEL_NAME,
+        'agent': 'AI Studio 2.0'
+    }
+
 async def stream_chat_response(user_message: str, request: Request):
     """Stream chat response in SSE format with client disconnect detection"""
     try:
