@@ -12,6 +12,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { ParsedFile } from '../utils/fileParser';
+import ToolCallCard from './ToolCallCard';
 
 interface MessageBubbleProps {
   message: Message;
@@ -650,6 +651,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           >
             {formatTimestamp(message.timestamp)}
           </span>
+        </div>
+      )}
+      {/* Tool calls display */}
+      {message.toolCalls && message.toolCalls.length > 0 && (
+        <div className="mb-4 space-y-3">
+          {message.toolCalls.map((toolCall) => (
+            <ToolCallCard key={toolCall.id} toolCall={toolCall} />
+          ))}
         </div>
       )}
       {isThinking ? (

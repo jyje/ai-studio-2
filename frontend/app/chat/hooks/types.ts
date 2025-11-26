@@ -9,6 +9,17 @@ export interface MessageMeta {
   agentType?: AgentType;   // Agent type used (basic or langgraph)
 }
 
+/**
+ * Tool call information from LangGraph agent
+ */
+export interface ToolCall {
+  id: string;              // Unique identifier for this tool call
+  tool: string;            // Tool name (e.g., 'get_current_time', 'get_weather')
+  input: Record<string, unknown>;  // Tool input parameters
+  output?: string;         // Tool output (available after tool_end)
+  status: 'running' | 'completed' | 'error';
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -16,6 +27,7 @@ export interface Message {
   timestamp?: Date;
   attachedFiles?: ParsedFile[]; // For display purposes
   meta?: MessageMeta;           // Model/agent info for assistant messages
+  toolCalls?: ToolCall[];       // Tool calls made by LangGraph agent
 }
 
 export interface ChatStreamOptions {

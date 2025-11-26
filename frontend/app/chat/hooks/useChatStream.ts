@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Message, MessageMeta, ChatStreamOptions, ChatStreamReturn } from './types';
+import { Message, MessageMeta, ToolCall, ChatStreamOptions, ChatStreamReturn } from './types';
 import { ParsedFile, formatFilesForPrompt } from '../utils/fileParser';
 import { fetchModelsList, getDefaultModel, LLMProfile, AgentType, generateSessionId } from '../../config';
 
@@ -158,13 +158,66 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
         agentType: selectedAgentType,
       };
       
-      // Helper to add meta to assistant message when stream ends
+      // Track tool calls during streaming
+      const toolCalls: ToolCall[] = [];
+      let toolCallIdCounter = 0;
+      
+      // Helper to generate tool call ID
+      const generateToolCallId = (): string => {
+        return `tool-${Date.now()}-${toolCallIdCounter++}`;
+      };
+      
+      // Helper to add meta and toolCalls to assistant message when stream ends
       const finalizeMessage = (content: string) => {
         if (content && content !== thinkingText) {
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMessageId
-                ? { ...msg, content, meta: currentMeta }
+                ? { 
+                    ...msg, 
+                    content, 
+                    meta: currentMeta,
+                    toolCalls: toolCalls.length > 0 ? [...toolCalls] : undefined
+                  }
+                : msg
+            )
+          );
+        }
+      };
+      
+      // Helper to handle tool_start event
+      const handleToolStart = (toolName: string, toolInput: Record<string, unknown>) => {
+        const toolCall: ToolCall = {
+          id: generateToolCallId(),
+          tool: toolName,
+          input: toolInput,
+          status: 'running',
+        };
+        toolCalls.push(toolCall);
+        
+        // Update message with current tool calls
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? { ...msg, toolCalls: [...toolCalls] }
+              : msg
+          )
+        );
+      };
+      
+      // Helper to handle tool_end event
+      const handleToolEnd = (toolName: string, toolOutput: string) => {
+        // Find the matching running tool call and update it
+        const toolCall = toolCalls.find(tc => tc.tool === toolName && tc.status === 'running');
+        if (toolCall) {
+          toolCall.output = toolOutput;
+          toolCall.status = 'completed';
+          
+          // Update message with updated tool calls
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, toolCalls: [...toolCalls] }
                 : msg
             )
           );
@@ -245,6 +298,26 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
             finalizeMessage(accumulatedContent);
             streamEnded = true;
             break;
+          } else if (eventType === 'tool_start') {
+            // Tool is starting
+            try {
+              const toolData = JSON.parse(data);
+              console.log(`[DEBUG] Tool start: ${toolData.tool}`, toolData.input);
+              handleToolStart(toolData.tool, toolData.input || {});
+            } catch (e) {
+              console.error('Failed to parse tool_start data:', e);
+            }
+            continue;
+          } else if (eventType === 'tool_end') {
+            // Tool finished
+            try {
+              const toolData = JSON.parse(data);
+              console.log(`[DEBUG] Tool end: ${toolData.tool}`, toolData.output);
+              handleToolEnd(toolData.tool, toolData.output || '');
+            } catch (e) {
+              console.error('Failed to parse tool_end data:', e);
+            }
+            continue;
           } else if (eventType === 'error') {
             // Parse error data
             try {

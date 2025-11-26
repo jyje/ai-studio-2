@@ -2,27 +2,18 @@
 
 import random
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from langchain_core.tools import tool
 
 
 @tool
-def get_current_time(timezone: str = "Asia/Seoul") -> str:
-    """Get the current local time for a specified timezone.
-    
-    Args:
-        timezone: The timezone to get the current time for (e.g., "Asia/Seoul", "America/New_York", "Europe/London").
-                  Defaults to "Asia/Seoul".
+def get_current_time() -> str:
+    """Get the current local time of the server.
     
     Returns:
-        A formatted string with the current date and time in the specified timezone.
+        A formatted string with the current local date and time.
     """
-    try:
-        tz = ZoneInfo(timezone)
-        now = datetime.now(tz)
-        return f"Current time in {timezone}: {now.strftime('%Y-%m-%d %H:%M:%S %Z')}"
-    except Exception as e:
-        return f"Error getting time for timezone '{timezone}': {str(e)}"
+    now = datetime.now()
+    return f"Current local time: {now.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
 @tool
