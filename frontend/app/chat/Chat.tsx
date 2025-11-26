@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useChatStream } from './hooks/useChatStream';
-import { useFileUpload } from './hooks/useFileUpload';
 import { getChatApiUrl } from '../config';
 import { useTranslation } from '@/app/i18n/hooks/useTranslation';
 import MessageBubble from './components/MessageBubble';
@@ -15,19 +14,6 @@ export default function Chat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef<boolean>(true);
-  
-  // File upload hook
-  const { 
-    files, 
-    parsedFiles, 
-    isProcessing,
-    addFiles, 
-    removeFile, 
-    clearFiles,
-    isDragOver,
-    dragHandlers,
-  } = useFileUpload();
-  
   const { messages, isLoading, error, sendMessage, addMessage, abort, clearError } = useChatStream({
     apiUrl: getChatApiUrl(),
     t,
@@ -200,37 +186,13 @@ export default function Chat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const hasInput = input.trim().length > 0;
-    const hasFiles = parsedFiles.length > 0;
-    
-    if ((!hasInput && !hasFiles) || isLoading || isProcessing) return;
+    if (!input.trim() || isLoading) return;
     
     const messageContent = input;
     setInput('');
-    
-    // Send message with parsed files
-    await sendMessage(messageContent, parsedFiles);
-    
-    // Clear attached files after sending
-    clearFiles();
-    
+    await sendMessage(messageContent);
     // Maintain focus after sending message
     inputRef.current?.focus();
-  };
-
-  // Handle file selection
-  const handleFilesSelected = async (fileList: FileList) => {
-    console.log('[Chat] Files selected:', {
-      count: fileList.length,
-      files: Array.from(fileList).map(f => ({ name: f.name, size: f.size, type: f.type })),
-    });
-    
-    try {
-      await addFiles(fileList);
-      console.log('[Chat] Files added successfully');
-    } catch (error) {
-      console.error('[Chat] Error adding files:', error);
-    }
   };
 
   const handleExampleClick = (example: string) => {
@@ -239,79 +201,48 @@ export default function Chat() {
   };
 
   return (
-    <>
-      {/* Full-page drag overlay */}
-      {isDragOver && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-blue-500/20 dark:bg-blue-400/20 backdrop-blur-sm pointer-events-none">
-          <div className="flex flex-col items-center gap-4 text-blue-600 dark:text-blue-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-16 h-16"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            <span className="text-xl font-medium">{t('fileUpload.dragDrop.hint')}</span>
+    <div className="flex flex-col w-full max-w-full md:max-w-2xl lg:max-w-4xl py-24 mx-auto stretch px-4">
+      {/* Welcome screen - only show when no messages */}
+      {!hasMessages && (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] pb-32">
+          <h1 className="text-5xl font-bold mb-12 text-gray-900 dark:text-[#cccccc]">
+            {t('welcome.title')}
+          </h1>
+          <div className="flex flex-col gap-3 w-full max-w-2xl">
+            {randomExamples.map((example, index) => (
+              <button
+                key={index}
+                onClick={() => handleExampleClick(example)}
+                className="text-left p-4 rounded-xl border border-gray-300 dark:border-[#3e3e42] bg-white dark:bg-[#252526] hover:bg-gray-50 dark:hover:bg-[#2d2d30] transition-colors shadow-sm hover:shadow-md cursor-pointer"
+              >
+                <span className="text-gray-900 dark:text-[#cccccc]">{example}</span>
+              </button>
+            ))}
           </div>
         </div>
       )}
 
       <div
-        className="flex flex-col w-full max-w-full md:max-w-2xl lg:max-w-4xl py-24 mx-auto stretch px-4 min-h-screen"
-        {...dragHandlers}
+        ref={messagesContainerRef}
+        className="flex flex-col gap-4 pb-32 outline-none select-text"
+        onCopy={handleCopy}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
       >
-        {/* Welcome screen - only show when no messages */}
-        {!hasMessages && (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] pb-32">
-            <h1 className="text-5xl font-bold mb-12 text-gray-800 dark:text-[#cccccc]">
-              {t('welcome.title')}
-            </h1>
-            <div className="flex flex-col gap-3 w-full max-w-2xl">
-              {randomExamples.map((example, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleExampleClick(example)}
-                  className="text-left p-4 rounded-xl border border-gray-300 dark:border-[#3e3e42] bg-white dark:bg-[#252526] hover:bg-gray-50 dark:hover:bg-[#2d2d30] transition-colors shadow-sm hover:shadow-md cursor-pointer"
-                >
-                  <span className="text-gray-700 dark:text-[#cccccc]">{example}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div
-          ref={messagesContainerRef}
-          className="flex flex-col gap-4 pb-32 outline-none select-text"
-          onCopy={handleCopy}
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
-        >
-          {messages.map((m) => (
-            <MessageBubble key={m.id} message={m} />
-          ))}
-        </div>
-
-        {error && <ErrorMessage error={error} onClose={clearError} />}
-        <ChatInput
-          value={input}
-          onChange={handleInputChange}
-          onSubmit={handleSubmit}
-          isLoading={isLoading || isProcessing}
-          inputRef={inputRef}
-          onAbort={abort}
-          files={files}
-          onFilesSelected={handleFilesSelected}
-          onRemoveFile={removeFile}
-        />
+        {messages.map((m) => (
+          <MessageBubble key={m.id} message={m} />
+        ))}
       </div>
-    </>
+
+      {error && <ErrorMessage error={error} onClose={clearError} />}
+      <ChatInput
+        value={input}
+        onChange={handleInputChange}
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+        inputRef={inputRef}
+        onAbort={abort}
+      />
+    </div>
   );
 }

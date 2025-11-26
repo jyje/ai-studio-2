@@ -172,8 +172,31 @@ export function useFileUpload(): UseFileUploadReturn {
       files: newFiles.map(f => ({ name: f.name, size: f.size, type: f.type })),
     });
     
+    // Filter out duplicate files (same name and size)
+    const filteredFiles = newFiles.filter(newFile => {
+      const isDuplicate = files.some(
+        existingFile => 
+          existingFile.file.name === newFile.name && 
+          existingFile.file.size === newFile.size
+      );
+      if (isDuplicate) {
+        console.log('[FileUpload] Skipping duplicate file:', newFile.name);
+      }
+      return !isDuplicate;
+    });
+
+    if (filteredFiles.length === 0) {
+      console.log('[FileUpload] All files are duplicates, skipping');
+      return;
+    }
+
+    console.log('[FileUpload] Files after duplicate check:', {
+      original: newFiles.length,
+      filtered: filteredFiles.length,
+    });
+    
     // Create initial state for each file
-    const fileStates: FileUploadState[] = newFiles.map(file => ({
+    const fileStates: FileUploadState[] = filteredFiles.map(file => ({
       id: generateFileId(),
       file,
       status: 'pending' as const,

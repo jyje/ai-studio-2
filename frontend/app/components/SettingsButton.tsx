@@ -56,12 +56,12 @@ export default function SettingsButton() {
         <button
           ref={buttonRef}
           onClick={() => setShowContextMenu(!showContextMenu)}
-          className="p-2 rounded-lg bg-white/90 dark:bg-[#252526]/95 backdrop-blur-sm border border-gray-300 dark:border-[#3e3e42] shadow-lg dark:shadow-xl hover:bg-gray-50 dark:hover:bg-[#2d2d30] transition-colors cursor-pointer"
+          className="p-2 rounded-lg bg-white dark:bg-[#252526]/95 backdrop-blur-sm border border-gray-300 dark:border-[#3e3e42] shadow-lg dark:shadow-xl hover:bg-gray-50 dark:hover:bg-[#2d2d30] transition-colors cursor-pointer"
           title={t('settings.menu')}
           aria-label={t('settings.menu')}
         >
           <svg
-            className="w-5 h-5 text-gray-700 dark:text-[#cccccc]"
+            className="w-5 h-5 text-gray-900 dark:text-[#cccccc]"
             fill="currentColor"
             viewBox="0 0 24 24"
           >

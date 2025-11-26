@@ -44,7 +44,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#252526] rounded-2xl shadow-2xl dark:shadow-2xl w-full max-w-md mx-4 p-6 border dark:border-[#3e3e42]"
+        className="bg-white dark:bg-[#252526] rounded-2xl shadow-2xl dark:shadow-2xl w-full max-w-md mx-4 p-6 border border-gray-300 dark:border-[#3e3e42]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
@@ -55,7 +55,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
             aria-label={t('settings.close')}
           >
             <svg
-              className="w-6 h-6 text-gray-500 dark:text-[#858585]"
+              className="w-6 h-6 text-gray-600 dark:text-[#858585]"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -70,14 +70,14 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-[#cccccc] mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-[#cccccc] mb-2">
               {t('settings.language')}
             </label>
             <div className="space-y-2">
               {supportedLocales.map((loc) => (
                 <label
                   key={loc}
-                  className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-[#3e3e42] hover:bg-gray-50 dark:hover:bg-[#2d2d30] cursor-pointer transition-colors"
+                  className="flex items-center p-3 rounded-lg border border-gray-300 dark:border-[#3e3e42] hover:bg-gray-100 dark:hover:bg-[#2d2d30] cursor-pointer transition-colors"
                 >
                   <input
                     type="radio"
@@ -87,7 +87,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                     onChange={() => handleLocaleChange(loc)}
                     className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="ml-3 text-sm text-gray-700 dark:text-[#cccccc]">{localeNames[loc]}</span>
+                  <span className="ml-3 text-sm text-gray-900 dark:text-[#cccccc]">{localeNames[loc]}</span>
                   {locale === loc && (
                     <svg
                       className="w-4 h-4 text-blue-600 ml-auto"
@@ -107,14 +107,14 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-[#cccccc] mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-[#cccccc] mb-2">
               {t('settings.theme')}
             </label>
             <div className="space-y-2">
               {themeOptions.map((option) => (
                 <label
                   key={option.value}
-                  className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-[#3e3e42] hover:bg-gray-50 dark:hover:bg-[#2d2d30] cursor-pointer transition-colors"
+                  className="flex items-center p-3 rounded-lg border border-gray-300 dark:border-[#3e3e42] hover:bg-gray-100 dark:hover:bg-[#2d2d30] cursor-pointer transition-colors"
                 >
                   <input
                     type="radio"
@@ -124,7 +124,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                     onChange={() => handleThemeChange(option.value)}
                     className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="ml-3 text-sm text-gray-700 dark:text-[#cccccc]">{option.label}</span>
+                  <span className="ml-3 text-sm text-gray-900 dark:text-[#cccccc]">{option.label}</span>
                   {theme === option.value && (
                     <svg
                       className="w-4 h-4 text-blue-600 ml-auto"

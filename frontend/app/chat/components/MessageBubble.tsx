@@ -11,6 +11,7 @@ import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { ParsedFile } from '../utils/fileParser';
 
 interface MessageBubbleProps {
   message: Message;
@@ -234,16 +235,92 @@ const preprocessLaTeX = (content: string): string => {
   return processed;
 };
 
+// File type icon component (matching AttachedFileList)
+function FileTypeIcon({ type }: { type: 'text' | 'pdf' | 'image' | 'unsupported' }) {
+  switch (type) {
+    case 'pdf':
+      return (
+        <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/>
+          <path d="M8 12h2v2H8v-2zm0 3h5v1H8v-1zm0 2h5v1H8v-1z"/>
+        </svg>
+      );
+    case 'image':
+      return (
+        <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+        </svg>
+      );
+    case 'text':
+      return (
+        <svg className="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+          <path d="M8 12h8v1H8v-1zm0 2h8v1H8v-1zm0 2h5v1H8v-1z"/>
+        </svg>
+      );
+    default:
+      return (
+        <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+        </svg>
+      );
+  }
+}
+
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const { t, locale } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [imagePreview, setImagePreview] = useState<{ src: string; x: number; y: number } | null>(null);
+  const imagePreviewRef = useRef<{ src: string; x: number; y: number } | null>(null);
 
-  // Format timestamp to local time string
+  // Check if a date is today
+  const isToday = (date: Date): boolean => {
+    const today = new Date();
+    const d = new Date(date);
+    return (
+      d.getDate() === today.getDate() &&
+      d.getMonth() === today.getMonth() &&
+      d.getFullYear() === today.getFullYear()
+    );
+  };
+
+  // Format timestamp - time only for today, date + time for other days
   const formatTimestamp = (timestamp?: Date): string => {
     if (!timestamp) return '';
-    return new Date(timestamp).toLocaleTimeString(locale === 'ko' ? 'ko-KR' : 'en-US', {
+    const date = new Date(timestamp);
+    const localeCode = locale === 'ko' ? 'ko-KR' : 'en-US';
+    
+    if (isToday(date)) {
+      // Today: show time only
+      return date.toLocaleTimeString(localeCode, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    } else {
+      // Other days: show date and time
+      return date.toLocaleString(localeCode, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+  };
+
+  // Format full timestamp for tooltip
+  const formatFullTimestamp = (timestamp?: Date): string => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const localeCode = locale === 'ko' ? 'ko-KR' : 'en-US';
+    
+    return date.toLocaleString(localeCode, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -377,13 +454,105 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     };
   }, [message.content]);
 
+  // Image preview handlers (for both user message files and AI message images)
+  const handleImagePreviewEnter = (src: string, e: React.MouseEvent) => {
+    const preview = {
+      src,
+      x: e.clientX,
+      y: e.clientY,
+    };
+    setImagePreview(preview);
+    imagePreviewRef.current = preview;
+  };
+
+  const handleImagePreviewMove = (e: React.MouseEvent) => {
+    if (imagePreviewRef.current) {
+      const preview = {
+        ...imagePreviewRef.current,
+        x: e.clientX,
+        y: e.clientY,
+      };
+      setImagePreview(preview);
+      imagePreviewRef.current = preview;
+    }
+  };
+
+  const handleImagePreviewLeave = () => {
+    setImagePreview(null);
+    imagePreviewRef.current = null;
+  };
+
+  // For user message attached files
+  const handleImageMouseEnter = (file: ParsedFile, e: React.MouseEvent) => {
+    if (file.type === 'image' && file.content) {
+      handleImagePreviewEnter(file.content, e);
+    }
+  };
+
+  const handleImageMouseMove = (e: React.MouseEvent) => {
+    handleImagePreviewMove(e);
+  };
+
+  const handleImageMouseLeave = () => {
+    handleImagePreviewLeave();
+  };
+
+  // Global mouse move handler for image preview
+  useEffect(() => {
+    if (imagePreview) {
+      const handleMouseMove = (e: MouseEvent) => {
+        if (imagePreviewRef.current) {
+          const preview = {
+            ...imagePreviewRef.current,
+            x: e.clientX,
+            y: e.clientY,
+          };
+          setImagePreview(preview);
+          imagePreviewRef.current = preview;
+        }
+      };
+      window.addEventListener('mousemove', handleMouseMove);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+      };
+    }
+  }, [imagePreview]);
+
+  // Image preview portal component
+  const ImagePreviewPortal = () => {
+    if (!imagePreview) return null;
+    return (
+      <div
+        className="fixed pointer-events-none z-50 rounded-lg shadow-2xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 overflow-hidden"
+        style={{
+          left: `${imagePreview.x + 15}px`,
+          top: `${imagePreview.y + 15}px`,
+          maxWidth: '400px',
+          maxHeight: '400px',
+        }}
+      >
+        <img
+          src={imagePreview.src}
+          alt="Preview"
+          className="max-w-full max-h-full object-contain"
+          style={{ display: 'block' }}
+        />
+      </div>
+    );
+  };
+
   if (message.role === 'user') {
     // User message: right-aligned bubble
+    const hasAttachedFiles = message.attachedFiles && message.attachedFiles.length > 0;
+    
     return (
-      <div className="w-full">
+      <div className="w-full group">
         {message.timestamp && (
           <div className="text-right mb-1">
-            <span className="text-xs text-gray-400">
+            <span 
+              className="text-xs text-gray-400 cursor-default"
+              title={formatFullTimestamp(message.timestamp)}
+            >
               {formatTimestamp(message.timestamp)}
             </span>
           </div>
@@ -391,8 +560,51 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         <div className="flex justify-end">
           <div className="max-w-[80%] rounded-2xl px-4 py-2 bg-blue-500 text-white break-words select-text">
             <div className="whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{message.content}</div>
+            {hasAttachedFiles && (
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-blue-400/30">
+                {message.attachedFiles.map((file: ParsedFile) => (
+                  <div
+                    key={file.id}
+                    className="flex items-center gap-1.5 bg-blue-400/20 rounded px-2 py-1"
+                    title={file.name}
+                    onMouseEnter={(e) => file.type === 'image' && handleImageMouseEnter(file, e)}
+                    onMouseLeave={file.type === 'image' ? handleImageMouseLeave : undefined}
+                    onMouseMove={file.type === 'image' ? handleImageMouseMove : undefined}
+                  >
+                    <FileTypeIcon type={file.type} />
+                    <span className="text-xs truncate max-w-[120px]">{file.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+        <div className="flex justify-end mt-2">
+          <div className="relative">
+            <button
+              onClick={handleCopy}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              className={`p-2 rounded-md transition-all shadow-md border cursor-pointer ${
+                copied
+                  ? 'text-white bg-green-600 border-green-500'
+                  : 'text-gray-700 dark:text-[#cccccc] bg-white dark:bg-[#252526] hover:bg-gray-50 dark:hover:bg-[#2d2d30] border-gray-300 dark:border-[#3e3e42] opacity-0 group-hover:opacity-100'
+              }`}
+            >
+              {copied ? (
+                <CheckIcon className="w-4 h-4" />
+              ) : (
+                <ClipboardIcon className="w-4 h-4" />
+              )}
+            </button>
+            {showTooltip && (
+              <div className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-900 dark:bg-[#252526] rounded shadow-lg dark:shadow-xl whitespace-nowrap z-20 border border-gray-800 dark:border-[#3e3e42]">
+                {copied ? t('messageBubble.copied') : t('messageBubble.copyTitle')}
+              </div>
+            )}
+          </div>
+        </div>
+        <ImagePreviewPortal />
       </div>
     );
   }
@@ -403,7 +615,10 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       <div className="w-full">
         {message.timestamp && (
           <div className="text-right mb-1">
-            <span className="text-xs text-gray-400">
+            <span 
+              className="text-xs text-gray-400 cursor-default"
+              title={formatFullTimestamp(message.timestamp)}
+            >
               {formatTimestamp(message.timestamp)}
             </span>
           </div>
@@ -429,7 +644,10 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     <div className="w-full group">
       {message.timestamp && (
         <div className="mb-1">
-          <span className="text-xs text-gray-400">
+          <span 
+            className="text-xs text-gray-400 cursor-default"
+            title={formatFullTimestamp(message.timestamp)}
+          >
             {formatTimestamp(message.timestamp)}
           </span>
         </div>
@@ -509,6 +727,28 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   },
                   h3: ({ children }) => {
                     return <h3 className="text-base font-bold mb-2 mt-2 first:mt-0 text-gray-900 dark:text-[#cccccc]">{children}</h3>;
+                  },
+                  // Custom styling for images with preview
+                  img: ({ src, alt, ...props }: any) => {
+                    return (
+                      <img
+                        src={src}
+                        alt={alt}
+                        {...props}
+                        className="max-w-full h-auto rounded-lg my-2 cursor-pointer hover:opacity-90 transition-opacity"
+                        onMouseEnter={(e) => {
+                          if (src) {
+                            handleImagePreviewEnter(src, e as any);
+                          }
+                        }}
+                        onMouseMove={(e) => {
+                          if (imagePreviewRef.current) {
+                            handleImagePreviewMove(e as any);
+                          }
+                        }}
+                        onMouseLeave={handleImagePreviewLeave}
+                      />
+                    );
                   },
                   // Custom styling for links
                   a: ({ href, children }) => {
@@ -590,6 +830,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           </ReactMarkdown>
         </div>
       )}
+      <ImagePreviewPortal />
       <div className="flex justify-end mt-2">
         <div className="relative">
           <button

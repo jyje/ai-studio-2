@@ -1,8 +1,9 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '@/app/i18n/hooks/useTranslation';
 import { FileUploadState } from '../hooks/useFileUpload';
-import { formatFileSize } from '../utils/fileParser';
+import { formatFileSize, getFileType } from '../utils/fileParser';
 
 interface AttachedFileListProps {
   files: FileUploadState[];
@@ -88,6 +89,92 @@ function CloseButton({ onClick }: { onClick: () => void }) {
 
 export default function AttachedFileList({ files, onRemove }: AttachedFileListProps) {
   const { t } = useTranslation();
+  const [imagePreview, setImagePreview] = useState<{ src: string; x: number; y: number } | null>(null);
+  const imagePreviewRef = useRef<{ src: string; x: number; y: number } | null>(null);
+  const objectUrlsRef = useRef<Map<string, string>>(new Map());
+
+  // Create object URL for image file
+  const getImageUrl = (fileState: FileUploadState): string | null => {
+    // First try to use parsed content (base64)
+    if (fileState.parsedFile?.content) {
+      return fileState.parsedFile.content;
+    }
+    
+    // Fallback: create object URL from File object
+    // Use getFileType to robustly check if it's an image
+    const fileType = getFileType(fileState.file);
+    if (fileType === 'image' || fileState.file.type.startsWith('image/')) {
+      // Check if we already have an object URL for this file
+      if (objectUrlsRef.current.has(fileState.id)) {
+        return objectUrlsRef.current.get(fileState.id)!;
+      }
+      // Create new object URL
+      const url = URL.createObjectURL(fileState.file);
+      objectUrlsRef.current.set(fileState.id, url);
+      return url;
+    }
+    
+    return null;
+  };
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+      objectUrlsRef.current.clear();
+    };
+  }, []);
+
+  // Image preview handlers
+  const handleImageMouseEnter = (src: string, e: React.MouseEvent) => {
+    const preview = {
+      src,
+      x: e.clientX,
+      y: e.clientY,
+    };
+    setImagePreview(preview);
+    imagePreviewRef.current = preview;
+  };
+
+  const handleImageMouseMove = (e: React.MouseEvent) => {
+    if (imagePreviewRef.current) {
+      const preview = {
+        ...imagePreviewRef.current,
+        x: e.clientX,
+        y: e.clientY,
+      };
+      setImagePreview(preview);
+      imagePreviewRef.current = preview;
+    }
+  };
+
+  const handleImageMouseLeave = () => {
+    setImagePreview(null);
+    imagePreviewRef.current = null;
+  };
+
+  // Global mouse move handler for smoother tracking
+  useEffect(() => {
+    if (imagePreview) {
+      const handleMouseMove = (e: MouseEvent) => {
+        if (imagePreviewRef.current) {
+          const preview = {
+            ...imagePreviewRef.current,
+            x: e.clientX,
+            y: e.clientY,
+          };
+          setImagePreview(preview);
+          imagePreviewRef.current = preview;
+        }
+      };
+      window.addEventListener('mousemove', handleMouseMove);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+      };
+    }
+  }, [imagePreview]);
 
   if (files.length === 0) return null;
 
@@ -96,7 +183,9 @@ export default function AttachedFileList({ files, onRemove }: AttachedFileListPr
       {files.map((fileState) => {
         const isLoading = fileState.status === 'pending' || fileState.status === 'parsing';
         const isError = fileState.status === 'error';
-        const fileType = fileState.parsedFile?.type || 'pending';
+        const fileType = fileState.parsedFile?.type || getFileType(fileState.file);
+        const isImage = fileType === 'image';
+        const imageUrl = isImage ? getImageUrl(fileState) : null;
 
         return (
           <div
@@ -108,7 +197,11 @@ export default function AttachedFileList({ files, onRemove }: AttachedFileListPr
                 ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800' 
                 : 'bg-gray-100 dark:bg-[#3e3e42] border border-gray-200 dark:border-[#4e4e52]'
               }
+              ${isImage && imageUrl ? 'cursor-pointer' : ''}
             `}
+            onMouseEnter={isImage && imageUrl ? (e) => handleImageMouseEnter(imageUrl, e) : undefined}
+            onMouseMove={isImage && imageUrl ? handleImageMouseMove : undefined}
+            onMouseLeave={isImage && imageUrl ? handleImageMouseLeave : undefined}
           >
             {/* Icon or spinner */}
             {isLoading ? (
@@ -155,6 +248,26 @@ export default function AttachedFileList({ files, onRemove }: AttachedFileListPr
           </div>
         );
       })}
+      
+      {/* Image preview portal */}
+      {imagePreview && (
+        <div
+          className="fixed pointer-events-none z-[9999] rounded-lg shadow-2xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 overflow-hidden"
+          style={{
+            left: `${imagePreview.x + 15}px`,
+            top: `${imagePreview.y + 15}px`,
+            maxWidth: '400px',
+            maxHeight: '400px',
+          }}
+        >
+          <img
+            src={imagePreview.src}
+            alt="Preview"
+            className="max-w-full max-h-full object-contain"
+            style={{ display: 'block' }}
+          />
+        </div>
+      )}
     </div>
   );
 }

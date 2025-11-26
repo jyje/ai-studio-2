@@ -15,7 +15,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const THEME_STORAGE_KEY = 'ai-studio-theme';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system');
+  const [theme, setThemeState] = useState<Theme>('light');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
@@ -42,12 +42,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setResolvedTheme(resolved);
   };
 
-  // Initialize theme from localStorage or system
+  // Initialize theme from localStorage or default to light
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    const initialTheme = stored || 'system';
+    // Default to 'light' instead of 'system' to prevent automatic system theme detection
+    const initialTheme = stored || 'light';
     
     setThemeState(initialTheme);
     applyTheme(initialTheme);

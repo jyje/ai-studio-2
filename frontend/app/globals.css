@@ -25,7 +25,143 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Force light mode styles when .light class is present (override system preference) */
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #ffffff !important;
+  color: #171717 !important;
+}
+
+/* Force light mode for title - override any dark mode styles */
+html.light h1.text-5xl,
+html.light h1[class*="text-5xl"] {
+  color: #111827 !important; /* text-gray-900 - very dark gray, almost black */
+}
+
+/* Force light mode for example buttons */
+html.light button.text-left.rounded-xl,
+html.light button[class*="text-left"][class*="rounded-xl"] {
+  background-color: #ffffff !important; /* Pure white */
+  border-color: #d1d5db !important; /* border-gray-300 - light gray border */
+}
+
+html.light button.text-left.rounded-xl span,
+html.light button[class*="text-left"][class*="rounded-xl"] span {
+  color: #111827 !important; /* text-gray-900 - very dark gray text */
+}
+
+html.light button.text-left.rounded-xl:hover,
+html.light button[class*="text-left"][class*="rounded-xl"]:hover {
+  background-color: #f9fafb !important; /* hover:bg-gray-50 - very light gray on hover */
+}
+
+/* Force light mode for input form */
+html.light form.fixed,
+html.light form[class*="fixed"] {
+  background-color: #ffffff !important; /* Pure white background */
+  border-color: #d1d5db !important; /* border-gray-300 - light gray border */
+}
+
+html.light form.fixed textarea,
+html.light form[class*="fixed"] textarea {
+  background-color: transparent !important;
+  color: #111827 !important; /* text-gray-900 - very dark gray text */
+}
+
+html.light form.fixed textarea::placeholder,
+html.light form[class*="fixed"] textarea::placeholder {
+  color: #9ca3af !important; /* placeholder:text-gray-400 - medium gray placeholder */
+}
+
+/* Force light mode for settings button */
+html.light button[class*="rounded-lg"][class*="p-2"],
+html.light .fixed.top-4.right-4 > button,
+html.light div[class*="fixed"][class*="top-4"][class*="right-4"] button,
+html.light div.fixed.top-4.right-4 button {
+  background-color: #ffffff !important; /* Pure white */
+  border-color: #d1d5db !important; /* border-gray-300 */
+}
+
+/* Force light mode hover for settings button - must override dark mode hover */
+/* Use more specific selectors to override Tailwind's media query dark mode */
+html.light button[class*="rounded-lg"][class*="p-2"]:hover,
+html.light .fixed.top-4.right-4 > button:hover,
+html.light div[class*="fixed"][class*="top-4"][class*="right-4"] button:hover,
+html.light div.fixed.top-4.right-4 button:hover,
+html.light div.fixed.top-4.right-4 > button:hover,
+html.light button.p-2.rounded-lg.bg-white:hover,
+html.light button[class*="bg-white"][class*="rounded-lg"]:hover,
+html.light button[class*="bg-white"][class*="p-2"]:hover,
+html.light div.fixed.top-4.right-4 button[class*="bg-white"]:hover {
+  background-color: #f9fafb !important; /* hover:bg-gray-50 - very light gray on hover */
+  border-color: #d1d5db !important; /* Keep light border on hover */
+}
+
+html.light button[class*="rounded-lg"][class*="p-2"] svg,
+html.light .fixed.top-4.right-4 > button svg,
+html.light div[class*="fixed"][class*="top-4"][class*="right-4"] button svg,
+html.light div.fixed.top-4.right-4 button svg {
+  color: #111827 !important; /* text-gray-900 - very dark gray */
+}
+
+/* Force light mode for settings modal */
+html.light div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] {
+  background-color: #ffffff !important; /* Pure white */
+  border-color: #d1d5db !important; /* border-gray-300 */
+}
+
+html.light div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] h2 {
+  color: #111827 !important; /* text-gray-900 */
+}
+
+html.light div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] label {
+  color: #111827 !important; /* text-gray-900 */
+}
+
+html.light div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] label[class*="flex"] {
+  border-color: #d1d5db !important; /* border-gray-300 */
+}
+
+html.light div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] label[class*="flex"] span {
+  color: #111827 !important; /* text-gray-900 */
+}
+
+html.light div[class*="rounded-2xl"][class*="shadow-2xl"][class*="max-w-md"] button svg {
+  color: #4b5563 !important; /* text-gray-600 */
+}
+
+/* Force light mode for context menu */
+html.light div[class*="absolute"][class*="top-12"] {
+  background-color: #ffffff !important; /* Pure white */
+  border-color: #d1d5db !important; /* border-gray-300 */
+}
+
+html.light div[class*="absolute"][class*="top-12"] button {
+  color: #111827 !important; /* text-gray-900 */
+}
+
+html.light div[class*="absolute"][class*="top-12"] button:hover {
+  background-color: #f3f4f6 !important; /* hover:bg-gray-100 */
+}
+
+html.light div[class*="absolute"][class*="top-12"] button svg {
+  color: #374151 !important; /* text-gray-700 */
+}
+
+/* Override any dark mode styles when in light mode */
+/* Use attribute selector to target elements with dark: classes */
+html.light [class*="dark:"] {
+  /* These will be overridden by the specific selectors below */
+}
+
 /* Force dark mode styles when .dark class is present */
+html.dark {
+  color-scheme: dark;
+}
+
 .dark {
   background-color: #1e1e1e;
   color: #d4d4d4;
@@ -386,6 +522,21 @@ html:not(.dark) .markdown-content .katex > div,
 html:not(.dark) .katex > div {
   color: #171717 !important;
   fill: #171717 !important;
+}
+
+/* Final override for settings button hover in light mode - must be at the end */
+html.light div.fixed.top-4.right-4 button:hover {
+  background-color: #f9fafb !important;
+}
+
+/* Override settings modal label hover in light mode */
+html.light label[class*="flex"][class*="items-center"][class*="p-3"]:hover {
+  background-color: #f3f4f6 !important; /* hover:bg-gray-100 - light gray */
+  border-color: #d1d5db !important; /* Keep light border */
+}
+
+html.light label[class*="flex"][class*="items-center"][class*="p-3"]:hover span {
+  color: #111827 !important; /* text-gray-900 - keep dark text */
 }
 
 /* Force all KaTeX spans, divs, and other elements - Dark mode */
