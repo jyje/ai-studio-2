@@ -6,7 +6,7 @@ import { fetchModelsList, getDefaultModel, LLMProfile, AgentType, generateSessio
 export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
   const { apiUrl, onError, t, model, provider, agentType } = options;
   const [selectedLLM, setSelectedLLM] = useState<LLMProfile | null>(null);
-  const [selectedAgentType, setSelectedAgentType] = useState<AgentType>(agentType || 'basic');
+  const [selectedAgentType, setSelectedAgentType] = useState<AgentType>(agentType || 'langgraph');
   
   // Session ID for multi-turn conversation - generated once on mount
   const sessionIdRef = useRef<string>(generateSessionId());

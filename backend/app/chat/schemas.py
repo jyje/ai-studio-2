@@ -18,7 +18,7 @@ class ChatRequest(BaseModel):
         description="Optional LLM provider (openai or azureopenai). If not specified, searches by model name."
     )
     agent_type: AgentType = Field(
-        default="basic",
+        default="langgraph",
         description="Agent type to use: 'basic' for direct LLM, 'langgraph' for ReAct agent with tools"
     )
     session_id: Optional[str] = Field(
