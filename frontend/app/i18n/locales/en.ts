@@ -78,6 +78,14 @@ export const en = {
       system: 'System',
     },
   },
+  // Plan display
+  plan: {
+    title: 'Execution Plan',
+    step: 'Step',
+    completed: 'Completed',
+    inProgress: 'In Progress',
+    pending: 'Pending',
+  },
   // Agent Graph Panel
   agentGraph: {
     title: 'Agent Graph',

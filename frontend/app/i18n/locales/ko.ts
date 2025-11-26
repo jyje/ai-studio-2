@@ -78,6 +78,14 @@ export const ko = {
       system: '시스템 설정',
     },
   },
+  // Plan display
+  plan: {
+    title: '실행 계획',
+    step: '단계',
+    completed: '완료',
+    inProgress: '진행 중',
+    pending: '대기',
+  },
   // Agent Graph Panel
   agentGraph: {
     title: '에이전트 그래프',

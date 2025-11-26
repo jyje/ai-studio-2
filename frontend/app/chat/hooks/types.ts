@@ -20,6 +20,15 @@ export interface ToolCall {
   status: 'running' | 'completed' | 'error';
 }
 
+/**
+ * Plan step from Plan-1 agent
+ */
+export interface PlanStep {
+  step_number: number;     // Step number (1-indexed)
+  description: string;     // Step description
+  status: 'pending' | 'in_progress' | 'completed' | 'skipped';
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -28,6 +37,7 @@ export interface Message {
   attachedFiles?: ParsedFile[]; // For display purposes
   meta?: MessageMeta;           // Model/agent info for assistant messages
   toolCalls?: ToolCall[];       // Tool calls made by LangGraph agent
+  plan?: PlanStep[];            // Execution plan from Plan-1 agent
 }
 
 export interface ChatStreamOptions {

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Message, MessageMeta, ToolCall, ChatStreamOptions, ChatStreamReturn } from './types';
+import { Message, MessageMeta, ToolCall, PlanStep, ChatStreamOptions, ChatStreamReturn } from './types';
 import { ParsedFile, formatFilesForPrompt } from '../utils/fileParser';
 import { fetchModelsList, getDefaultModel, LLMProfile, AgentType, generateSessionId } from '../../config';
 
@@ -163,14 +163,23 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
       const toolCalls: ToolCall[] = [];
       let toolCallIdCounter = 0;
       
+      // Track plan for Plan-1 agent
+      let currentPlan: PlanStep[] = [];
+      
       // Helper to generate tool call ID
       const generateToolCallId = (): string => {
         return `tool-${Date.now()}-${toolCallIdCounter++}`;
       };
       
-      // Helper to add meta and toolCalls to assistant message when stream ends
+      // Helper to add meta, toolCalls, and plan to assistant message when stream ends
       const finalizeMessage = (content: string) => {
         if (content && content !== thinkingText) {
+          // Mark all plan steps as completed when stream ends
+          const completedPlan = currentPlan.map(step => ({
+            ...step,
+            status: 'completed' as const
+          }));
+          
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMessageId
@@ -178,12 +187,48 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
                     ...msg, 
                     content, 
                     meta: currentMeta,
-                    toolCalls: toolCalls.length > 0 ? [...toolCalls] : undefined
+                    toolCalls: toolCalls.length > 0 ? [...toolCalls] : undefined,
+                    plan: completedPlan.length > 0 ? completedPlan : undefined
                   }
                 : msg
             )
           );
         }
+      };
+      
+      // Helper to handle plan_created event
+      const handlePlanCreated = (plan: PlanStep[]) => {
+        currentPlan = plan.map(step => ({
+          ...step,
+          status: 'pending' as const
+        }));
+        
+        // Update message with plan immediately
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? { ...msg, plan: [...currentPlan] }
+              : msg
+          )
+        );
+      };
+      
+      // Helper to handle plan_step_completed event
+      const handlePlanStepCompleted = (stepNumber: number) => {
+        currentPlan = currentPlan.map(step =>
+          step.step_number === stepNumber
+            ? { ...step, status: 'completed' as const }
+            : step
+        );
+        
+        // Update message with updated plan
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? { ...msg, plan: [...currentPlan] }
+              : msg
+          )
+        );
       };
       
       // Helper to handle tool_start event
@@ -342,6 +387,24 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
               setCurrentNode(selectedAgentType === 'plan-1' ? 'MAIN' : 'agent');
             } catch (e) {
               console.error('Failed to parse tool_end data:', e);
+            }
+            continue;
+          } else if (eventType === 'plan_created') {
+            // Plan-1 agent created a plan
+            try {
+              const planData = JSON.parse(data);
+              handlePlanCreated(planData.plan || []);
+            } catch (e) {
+              console.error('Failed to parse plan_created data:', e);
+            }
+            continue;
+          } else if (eventType === 'plan_step_completed') {
+            // Plan-1 agent completed a step
+            try {
+              const stepData = JSON.parse(data);
+              handlePlanStepCompleted(stepData.step_number);
+            } catch (e) {
+              console.error('Failed to parse plan_step_completed data:', e);
             }
             continue;
           } else if (eventType === 'error') {
