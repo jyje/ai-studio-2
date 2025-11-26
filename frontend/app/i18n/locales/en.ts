@@ -80,6 +80,9 @@ export const en = {
   welcome: {
     title: 'AI Studio 2.0',
     examples: [
+      'What time is it now?',
+      "What's the weather in Seoul?",
+      'Tell me the current time and weather in London',
       'Create a simple web crawler in Python',
       'How to optimize React components',
       'Design a REST API with FastAPI',
@@ -89,7 +92,6 @@ export const en = {
       'Database normalization principles',
       'Git branching strategy comparison',
       'Web security best practices',
-      'Microservices architecture design',
     ],
   },
 } as const;

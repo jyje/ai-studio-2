@@ -80,6 +80,9 @@ export const ko = {
   welcome: {
     title: 'AI Studio 2.0',
     examples: [
+      '지금 몇 시야?',
+      '서울 날씨 어때?',
+      '현재 시간 알려주고 뉴욕 날씨도 알려줘',
       'Python으로 간단한 웹 크롤러 만들기',
       'React 컴포넌트 최적화 방법',
       'FastAPI로 REST API 설계하기',
@@ -89,7 +92,6 @@ export const ko = {
       '데이터베이스 정규화 원칙',
       'Git 브랜치 전략 비교',
       '웹 보안 모범 사례',
-      '마이크로서비스 아키텍처 설계',
     ],
   },
 } as const;
