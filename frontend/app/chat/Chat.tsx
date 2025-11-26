@@ -14,7 +14,7 @@ export default function Chat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef<boolean>(true);
-  const { messages, isLoading, error, sendMessage, addMessage, abort, clearError, selectedLLM, setSelectedLLM } = useChatStream({
+  const { messages, isLoading, error, sendMessage, addMessage, abort, clearError, selectedLLM, setSelectedLLM, selectedAgentType, setSelectedAgentType } = useChatStream({
     apiUrl: getChatApiUrl(),
     t,
     onError: (err) => {
@@ -265,6 +265,8 @@ export default function Chat() {
         selectedLLM={selectedLLM}
         allProfiles={allProfiles}
         onProfileChange={setSelectedLLM}
+        selectedAgentType={selectedAgentType}
+        onAgentTypeChange={setSelectedAgentType}
       />
     </div>
   );

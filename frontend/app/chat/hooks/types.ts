@@ -1,5 +1,13 @@
 import { ParsedFile } from '../utils/fileParser';
-import { LLMProfile } from '../../config';
+import { LLMProfile, AgentType } from '../../config';
+
+/**
+ * Metadata for assistant messages showing model/agent info
+ */
+export interface MessageMeta {
+  modelName?: string;      // LLM profile name
+  agentType?: AgentType;   // Agent type used (basic or langgraph)
+}
 
 export interface Message {
   id: string;
@@ -7,6 +15,7 @@ export interface Message {
   content: string;
   timestamp?: Date;
   attachedFiles?: ParsedFile[]; // For display purposes
+  meta?: MessageMeta;           // Model/agent info for assistant messages
 }
 
 export interface ChatStreamOptions {
@@ -15,6 +24,7 @@ export interface ChatStreamOptions {
   t?: (key: string) => string;
   model?: string; // Optional: profile name or model name
   provider?: 'openai' | 'azureopenai'; // Optional: provider name
+  agentType?: AgentType; // Optional: agent type (basic or langgraph)
 }
 
 export interface ChatStreamReturn {
@@ -27,5 +37,9 @@ export interface ChatStreamReturn {
   clearError: () => void;
   selectedLLM: LLMProfile | null;
   setSelectedLLM: (profile: LLMProfile | null) => void;
+  selectedAgentType: AgentType;
+  setSelectedAgentType: (agentType: AgentType) => void;
+  sessionId: string;
+  resetSession: () => void; // Reset session and clear messages
 }
 

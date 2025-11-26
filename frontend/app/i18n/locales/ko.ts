@@ -17,10 +17,17 @@ export const ko = {
     info: {
       model: '모델',
       agent: '에이전트',
+      agentType: '에이전트 타입',
     },
     profile: {
       default: '기본',
       unavailable: '사용 불가',
+    },
+    agentType: {
+      basic: 'Basic',
+      basicDescription: 'LLM 직접 대화',
+      langgraph: 'LangGraph',
+      langgraphDescription: '도구 사용 ReAct 에이전트',
     },
   },
   // File upload

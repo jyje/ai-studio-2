@@ -831,7 +831,34 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         </div>
       )}
       <ImagePreviewPortal />
-      <div className="flex justify-end mt-2">
+      {/* Model/Agent info and Copy button row */}
+      <div className="flex items-center justify-between mt-2">
+        {/* Model/Agent meta info - left side */}
+        {message.meta && (
+          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+            {message.meta.modelName && (
+              <span className="flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {message.meta.modelName}
+              </span>
+            )}
+            {message.meta.agentType && (
+              <>
+                <span className="text-gray-300 dark:text-gray-600">•</span>
+                <span className="flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  {message.meta.agentType === 'langgraph' ? 'LangGraph' : 'Basic'}
+                </span>
+              </>
+            )}
+          </div>
+        )}
+        {!message.meta && <div />}
+        {/* Copy button - right side */}
         <div className="relative">
           <button
             onClick={handleCopy}

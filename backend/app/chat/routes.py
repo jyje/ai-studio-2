@@ -70,12 +70,21 @@ def get_models() -> ModelsListResponse:
 
 @router.post('/chat')
 async def chat(request: Request, chat_request: ChatRequest):
-    """Stream chat response in SSE format."""
+    """Stream chat response in SSE format.
+    
+    Supports two agent types:
+    - 'basic': Direct LLM chat (default)
+    - 'langgraph': ReAct agent with tool support (time, weather)
+    
+    Supports multi-turn conversation via session_id parameter.
+    """
     return StreamingResponse(
         chat_service.stream_chat_response(
             user_message=chat_request.message,
             model=chat_request.model,
             provider=chat_request.provider,
+            agent_type=chat_request.agent_type,
+            session_id=chat_request.session_id,
             request=request
         ),
         media_type='text/event-stream',

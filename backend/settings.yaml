@@ -1,6 +1,10 @@
 # LLM List Configuration
 # Define multiple LLM profiles with flat structure (depth 1)
 llm_list:
+  # SKT A.X 4.0 - Free Guest API (OpenAI-compatible)
+  # Credit: SKT AI (https://www.sktax.chat)
+  # This is a public guest API key for testing purposes.
+  # For production use, please obtain your own API key from SKT.
   - name: SKT A.X 4.0
     provider: openai
     model: ax4

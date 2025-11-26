@@ -9,6 +9,19 @@ export interface ChatConfig {
 }
 
 /**
+ * Agent type for selecting between basic LLM and LangGraph ReAct agent
+ */
+export type AgentType = 'basic' | 'langgraph';
+
+/**
+ * Agent type options for UI display
+ */
+export const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = [
+  { value: 'basic', label: 'Basic', description: 'Direct LLM chat' },
+  { value: 'langgraph', label: 'LangGraph', description: 'ReAct agent with tools' },
+];
+
+/**
  * Get backend URL from environment variables or use default value
  */
 const getBackendBaseUrl = (): string => {
@@ -127,5 +140,21 @@ export const getDefaultModel = (modelsList: ModelsListResponse): LLMProfile | nu
     return modelsList.models[firstProvider][0];
   }
   return null;
+};
+
+/**
+ * Generate a UUID v4 for session ID
+ */
+export const generateSessionId = (): string => {
+  // Use crypto.randomUUID if available, otherwise fallback to manual generation
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older browsers
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 };
 

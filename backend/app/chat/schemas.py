@@ -4,6 +4,10 @@ from pydantic import BaseModel, Field
 from typing import Literal, Dict, List, Optional
 
 
+# Agent type literal for type safety
+AgentType = Literal["basic", "langgraph"]
+
+
 class ChatRequest(BaseModel):
     """Request schema for chat endpoint."""
     
@@ -12,6 +16,14 @@ class ChatRequest(BaseModel):
     provider: Optional[Literal["openai", "azureopenai"]] = Field(
         default=None,
         description="Optional LLM provider (openai or azureopenai). If not specified, searches by model name."
+    )
+    agent_type: AgentType = Field(
+        default="basic",
+        description="Agent type to use: 'basic' for direct LLM, 'langgraph' for ReAct agent with tools"
+    )
+    session_id: Optional[str] = Field(
+        default=None,
+        description="Session ID for multi-turn conversation. If not provided, a new session will be created."
     )
 
 

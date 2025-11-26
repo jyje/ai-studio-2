@@ -10,6 +10,7 @@ dependencies = [
     "dynaconf[yaml]>=3.2.0",
     "langchain>=0.3.0",
     "langchain-openai>=0.2.0",
+    "langgraph>=0.2.0",
 ]
 
 [tool.setuptools]

@@ -17,10 +17,17 @@ export const en = {
     info: {
       model: 'Model',
       agent: 'Agent',
+      agentType: 'Agent Type',
     },
     profile: {
       default: 'Default',
       unavailable: 'Unavailable',
+    },
+    agentType: {
+      basic: 'Basic',
+      basicDescription: 'Direct LLM chat',
+      langgraph: 'LangGraph',
+      langgraphDescription: 'ReAct agent with tools',
     },
   },
   // File upload

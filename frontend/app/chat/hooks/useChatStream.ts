@@ -1,11 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { Message, ChatStreamOptions, ChatStreamReturn } from './types';
+import { Message, MessageMeta, ChatStreamOptions, ChatStreamReturn } from './types';
 import { ParsedFile, formatFilesForPrompt } from '../utils/fileParser';
-import { fetchModelsList, getDefaultModel, LLMProfile } from '../../config';
+import { fetchModelsList, getDefaultModel, LLMProfile, AgentType, generateSessionId } from '../../config';
 
 export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
-  const { apiUrl, onError, t, model, provider } = options;
+  const { apiUrl, onError, t, model, provider, agentType } = options;
   const [selectedLLM, setSelectedLLM] = useState<LLMProfile | null>(null);
+  const [selectedAgentType, setSelectedAgentType] = useState<AgentType>(agentType || 'basic');
+  
+  // Session ID for multi-turn conversation - generated once on mount
+  const sessionIdRef = useRef<string>(generateSessionId());
+  const [sessionId, setSessionId] = useState<string>(sessionIdRef.current);
   
   // Default translation function (returns key if no translation provided)
   const translate = (key: string): string => {
@@ -123,6 +128,8 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
           // Send profile name if available, otherwise send model name
           model: model || selectedLLM?.name || selectedLLM?.model || '',
           ...(provider || selectedLLM?.provider ? { provider: provider || selectedLLM?.provider } : {}),
+          agent_type: selectedAgentType, // Include agent type in request
+          session_id: sessionId, // Include session ID for multi-turn conversation
         }),
         signal: abortController.signal,
       });
@@ -144,6 +151,25 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
       let isFirstToken = true; // Track if we've received the first token
       let streamEnded = false; // Flag to track if stream has ended
       let chunkCount = 0; // Debug: count received chunks
+      
+      // Capture current model/agent info for meta
+      const currentMeta: MessageMeta = {
+        modelName: model || selectedLLM?.name || selectedLLM?.model || 'Unknown',
+        agentType: selectedAgentType,
+      };
+      
+      // Helper to add meta to assistant message when stream ends
+      const finalizeMessage = (content: string) => {
+        if (content && content !== thinkingText) {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, content, meta: currentMeta }
+                : msg
+            )
+          );
+        }
+      };
 
       while (!streamEnded) {
         const { done, value } = await reader.read();
@@ -179,16 +205,9 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
                 }
               }
             }
-            if (accumulatedContent && accumulatedContent !== thinkingText) {
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === assistantMessageId
-                    ? { ...msg, content: accumulatedContent }
-                    : msg
-                )
-              );
-            }
           }
+          // Finalize message with meta info when reader is done
+          finalizeMessage(accumulatedContent);
           console.log(`[DEBUG] Final content length: ${accumulatedContent.length}`);
           break;
         }
@@ -220,9 +239,10 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
             // Stream started - can log or ignore
             continue;
           } else if (eventType === 'end') {
-            // Stream completed - set flag to exit while loop
+            // Stream completed - finalize message with meta and exit
             console.log(`[DEBUG] End event received. Total chunks: ${chunkCount}, Content length: ${accumulatedContent.length}`);
             console.log(`[DEBUG] Content preview (last 500 chars):`, accumulatedContent.slice(-500));
+            finalizeMessage(accumulatedContent);
             streamEnded = true;
             break;
           } else if (eventType === 'error') {
@@ -253,7 +273,8 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
                   accumulatedContent += processedData;
                 }
               } else if (parsedData.status === 'completed') {
-                // Stream completed - set flag to exit while loop
+                // Stream completed - finalize message with meta and exit
+                finalizeMessage(accumulatedContent);
                 streamEnded = true;
                 break;
               }
@@ -320,9 +341,24 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
       const thinkingText = translate('chatStream.thinking');
       const userAbortedText = translate('chatStream.userAborted');
       
-      // Remove thinking message if it exists and add system message
+      // Capture current model/agent info for meta
+      const currentMeta: MessageMeta = {
+        modelName: selectedLLM?.name || selectedLLM?.model || 'Unknown',
+        agentType: selectedAgentType,
+      };
+      
+      // Update assistant message with meta info (if has content) and add system message
       setMessages((prev) => {
-        const filtered = prev.filter((msg) => !(msg.role === 'assistant' && msg.content === thinkingText));
+        const updated = prev.map((msg) => {
+          // If assistant message with content (not just thinking), add meta
+          if (msg.role === 'assistant' && msg.content && msg.content !== thinkingText) {
+            return { ...msg, meta: currentMeta };
+          }
+          return msg;
+        });
+        
+        // Remove thinking-only messages
+        const filtered = updated.filter((msg) => !(msg.role === 'assistant' && msg.content === thinkingText));
         
         // Add system message indicating user cancellation
         const systemMessage: Message = {
@@ -345,6 +381,16 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
     setMessages((prev) => [...prev, message]);
   };
 
+  // Reset session - generate new session ID and clear messages
+  const resetSession = () => {
+    const newSessionId = generateSessionId();
+    sessionIdRef.current = newSessionId;
+    setSessionId(newSessionId);
+    setMessages([]);
+    setError(null);
+    console.log('[ChatStream] Session reset. New session ID:', newSessionId);
+  };
+
   // Cancel request on component unmount
   useEffect(() => {
     return () => {
@@ -364,6 +410,10 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
     clearError,
     selectedLLM,
     setSelectedLLM,
+    selectedAgentType,
+    setSelectedAgentType,
+    sessionId,
+    resetSession,
   };
 }
 
