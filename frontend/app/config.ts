@@ -67,6 +67,7 @@ export interface LLMProfile {
   model: string;
   base_url: string;
   default: boolean;
+  available?: boolean; // Optional: whether this profile is available (initialized)
 }
 
 /**

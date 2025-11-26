@@ -18,6 +18,10 @@ export const ko = {
       model: '모델',
       agent: '에이전트',
     },
+    profile: {
+      default: '기본',
+      unavailable: '사용 불가',
+    },
   },
   // File upload
   fileUpload: {

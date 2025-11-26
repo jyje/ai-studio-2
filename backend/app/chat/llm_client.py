@@ -106,6 +106,7 @@ class LLMList:
         """Initialize LLM List from settings."""
         self.profiles: Dict[str, LLMClient] = {}  # {profile_name: LLMClient}
         self.default_client: Optional[LLMClient] = None
+        self.raw_config: List[Dict] = []  # Store raw config from settings.yaml
         self._load_from_settings()
     
     def _resolve_env_var(self, value: str) -> str:
@@ -151,6 +152,8 @@ class LLMList:
     def _load_from_settings(self):
         """Load LLM configurations from settings.yaml."""
         llm_list_config = settings.get('llm_list', [])
+        # Store raw config for listing all profiles
+        self.raw_config = llm_list_config
         
         default_found = False
         
@@ -246,6 +249,39 @@ class LLMList:
         
         if provider:
             profiles = [p for p in profiles if p.get('provider') == provider]
+        
+        return profiles
+    
+    def list_all_profiles_from_config(self, provider: Optional[str] = None) -> List[Dict]:
+        """List all profiles from settings.yaml config, including those with unresolved env vars.
+        
+        This method returns all profiles defined in settings.yaml, even if they
+        couldn't be initialized due to missing environment variables.
+        
+        Args:
+            provider: Optional provider name to filter. If None, returns all profiles.
+            
+        Returns:
+            List of profile dictionaries from config.
+        """
+        profiles = []
+        for profile_config in self.raw_config:
+            profile_dict = {
+                'name': profile_config.get('name', ''),
+                'provider': profile_config.get('provider', ''),
+                'model': profile_config.get('model', ''),
+                'base_url': profile_config.get('base_url', ''),
+                'default': profile_config.get('default', False),
+            }
+            # Check if this profile is actually initialized (available)
+            is_available = profile_dict['name'] in self.profiles
+            profile_dict['available'] = is_available
+            
+            if provider:
+                if profile_dict.get('provider') == provider:
+                    profiles.append(profile_dict)
+            else:
+                profiles.append(profile_dict)
         
         return profiles
     

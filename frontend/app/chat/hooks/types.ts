@@ -1,4 +1,5 @@
 import { ParsedFile } from '../utils/fileParser';
+import { LLMProfile } from '../../config';
 
 export interface Message {
   id: string;
@@ -24,5 +25,7 @@ export interface ChatStreamReturn {
   addMessage: (message: Message) => void;
   abort: () => void;
   clearError: () => void;
+  selectedLLM: LLMProfile | null;
+  setSelectedLLM: (profile: LLMProfile | null) => void;
 }
 

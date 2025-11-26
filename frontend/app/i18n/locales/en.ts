@@ -18,6 +18,10 @@ export const en = {
       model: 'Model',
       agent: 'Agent',
     },
+    profile: {
+      default: 'Default',
+      unavailable: 'Unavailable',
+    },
   },
   // File upload
   fileUpload: {

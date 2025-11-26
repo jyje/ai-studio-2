@@ -362,6 +362,8 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
     addMessage,
     abort,
     clearError,
+    selectedLLM,
+    setSelectedLLM,
   };
 }
 

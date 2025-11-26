@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useChatStream } from './hooks/useChatStream';
-import { getChatApiUrl } from '../config';
+import { getChatApiUrl, fetchModelsList, ModelsListResponse, LLMProfile } from '../config';
 import { useTranslation } from '@/app/i18n/hooks/useTranslation';
 import MessageBubble from './components/MessageBubble';
 import ChatInput from './components/ChatInput';
@@ -14,13 +14,34 @@ export default function Chat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef<boolean>(true);
-  const { messages, isLoading, error, sendMessage, addMessage, abort, clearError } = useChatStream({
+  const { messages, isLoading, error, sendMessage, addMessage, abort, clearError, selectedLLM, setSelectedLLM } = useChatStream({
     apiUrl: getChatApiUrl(),
     t,
     onError: (err) => {
       console.error('Chat error:', err);
     },
   });
+  const [modelsList, setModelsList] = useState<ModelsListResponse | null>(null);
+  const [allProfiles, setAllProfiles] = useState<LLMProfile[]>([]);
+
+  // Fetch models list on mount
+  useEffect(() => {
+    fetchModelsList()
+      .then((list) => {
+        setModelsList(list);
+        // Flatten all profiles from all providers, maintaining order from settings.yaml
+        // Backend returns profiles in settings.yaml order, so we preserve that order
+        const profiles: LLMProfile[] = [];
+        for (const provider of list.providers) {
+          // Profiles within each provider are already in settings.yaml order
+          profiles.push(...(list.models[provider] || []));
+        }
+        setAllProfiles(profiles);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch models list:', err);
+      });
+  }, []);
 
   // Get random 3 examples from welcome examples
   const getRandomExamples = (): string[] => {
@@ -241,6 +262,9 @@ export default function Chat() {
         isLoading={isLoading}
         inputRef={inputRef}
         onAbort={abort}
+        selectedLLM={selectedLLM}
+        allProfiles={allProfiles}
+        onProfileChange={setSelectedLLM}
       />
     </div>
   );

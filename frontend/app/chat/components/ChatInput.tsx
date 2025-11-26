@@ -2,7 +2,7 @@
 
 import { useTranslation } from '@/app/i18n/hooks/useTranslation';
 import { useEffect, useRef, useState } from 'react';
-import { fetchModelInfo, ModelInfo } from '@/app/config';
+import { fetchModelInfo, ModelInfo, LLMProfile } from '@/app/config';
 
 interface ChatInputProps {
   value: string;
@@ -11,6 +11,9 @@ interface ChatInputProps {
   isLoading: boolean;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
   onAbort?: () => void;
+  selectedLLM?: LLMProfile | null;
+  allProfiles?: LLMProfile[];
+  onProfileChange?: (profile: LLMProfile | null) => void;
 }
 
 export default function ChatInput({
@@ -20,6 +23,9 @@ export default function ChatInput({
   isLoading,
   inputRef,
   onAbort,
+  selectedLLM,
+  allProfiles = [],
+  onProfileChange,
 }: ChatInputProps) {
   const { t } = useTranslation();
   const hasInput = value.trim().length > 0;
@@ -27,6 +33,9 @@ export default function ChatInput({
   const showAbortButton = isLoading && onAbort;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [modelInfo, setModelInfo] = useState<ModelInfo | null>(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch model info on mount
   useEffect(() => {
@@ -36,6 +45,51 @@ export default function ChatInput({
         console.error('Failed to fetch model info:', err);
       });
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    if (showProfileDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showProfileDropdown]);
+
+  // Close dropdown on ESC key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showProfileDropdown) {
+        setShowProfileDropdown(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showProfileDropdown]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleProfileSelect = (profile: LLMProfile) => {
+    if (onProfileChange) {
+      onProfileChange(profile);
+    }
+    setShowProfileDropdown(false);
+  };
+
+  const currentProfileName = selectedLLM?.name || modelInfo?.profile_name || '';
 
   // Auto-resize textarea based on content
   const resizeTextarea = () => {
@@ -96,9 +150,89 @@ export default function ChatInput({
           {/* Model and Agent Info */}
           {modelInfo && (
             <div className="flex items-center gap-3 mt-1 px-2 text-xs text-gray-500 dark:text-gray-400 h-5">
-              <span>
-                {t('chatInput.info.model')}: <span className="font-medium">{modelInfo.profile_name}</span>
-              </span>
+              <div className="relative" ref={dropdownRef}>
+                <span
+                  className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                  onMouseEnter={() => {
+                    if (hoverTimeoutRef.current) {
+                      clearTimeout(hoverTimeoutRef.current);
+                      hoverTimeoutRef.current = null;
+                    }
+                    setShowProfileDropdown(true);
+                  }}
+                  onMouseLeave={() => {
+                    // Delay closing to allow moving to dropdown
+                    hoverTimeoutRef.current = setTimeout(() => {
+                      setShowProfileDropdown(false);
+                      hoverTimeoutRef.current = null;
+                    }, 200);
+                  }}
+                >
+                  {t('chatInput.info.model')}: <span className="font-medium">{currentProfileName}</span>
+                </span>
+                {showProfileDropdown && allProfiles.length > 0 && (
+                  <div
+                    className="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[200px]"
+                    onMouseEnter={() => {
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                        hoverTimeoutRef.current = null;
+                      }
+                      setShowProfileDropdown(true);
+                    }}
+                    onMouseLeave={() => {
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setShowProfileDropdown(false);
+                        hoverTimeoutRef.current = null;
+                      }, 200);
+                    }}
+                  >
+                    {allProfiles.map((profile) => {
+                      const isAvailable = profile.available !== false; // Default to true if not specified
+                      const isSelected = selectedLLM?.name === profile.name;
+                      
+                      return (
+                        <button
+                          key={profile.name}
+                          type="button"
+                          onClick={() => {
+                            if (isAvailable) {
+                              handleProfileSelect(profile);
+                            }
+                          }}
+                          disabled={!isAvailable}
+                          className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                            !isAvailable
+                              ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600'
+                              : isSelected
+                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer'
+                              : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc] cursor-pointer'
+                          } ${profile.default ? 'font-semibold' : ''}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{profile.name}</span>
+                            <div className="flex items-center gap-2">
+                              {!isAvailable && (
+                                <span className="text-xs text-orange-500 dark:text-orange-400">
+                                  {t('chatInput.profile.unavailable')}
+                                </span>
+                              )}
+                              {profile.default && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {t('chatInput.profile.default')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            {profile.provider} / {profile.model}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               <span className="text-gray-300 dark:text-gray-600">|</span>
               <span>
                 {t('chatInput.info.agent')}: <span className="font-medium">{modelInfo.agent}</span>

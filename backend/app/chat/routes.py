@@ -32,20 +32,39 @@ def get_info() -> ChatInfoResponse:
 
 @router.get('/models', response_model=ModelsListResponse)
 def get_models() -> ModelsListResponse:
-    """Get list of available models by provider."""
-    all_profiles = llm_list.list_profiles()
+    """Get list of available models by provider.
     
-    # Group by provider
+    Returns all profiles from settings.yaml, including those with unresolved environment variables.
+    Profiles are returned in the order they appear in settings.yaml.
+    """
+    # Get all profiles from config (including unavailable ones)
+    all_profiles = llm_list.list_all_profiles_from_config()
+    
+    # Group by provider while maintaining order
     models_info: dict[str, list[ModelInfo]] = {}
+    providers_order = []  # Maintain order of providers as they appear in settings.yaml
+    
     for profile_data in all_profiles:
         provider = profile_data.get('provider')
-        if provider not in models_info:
-            models_info[provider] = []
-        models_info[provider].append(ModelInfo(**profile_data))
+        if provider:
+            # Add provider to order list only if not already added
+            if provider not in providers_order:
+                providers_order.append(provider)
+            if provider not in models_info:
+                models_info[provider] = []
+            # Only include available fields for ModelInfo
+            profile_info = {
+                'name': profile_data.get('name', ''),
+                'provider': profile_data.get('provider', ''),
+                'model': profile_data.get('model', ''),
+                'base_url': profile_data.get('base_url', ''),
+                'default': profile_data.get('default', False),
+            }
+            models_info[provider].append(ModelInfo(**profile_info))
     
     return ModelsListResponse(
         models=models_info,
-        providers=llm_list.get_providers()
+        providers=providers_order  # Maintain order from settings.yaml
     )
 
 
