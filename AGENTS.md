@@ -311,3 +311,67 @@ frontend/app/
 ### Commit Messages
 - **Language**: Use English for commit messages
 - **Format**: Follow conventional commit format when possible
+
+## Backend LLM Configuration
+
+### LLM Pool Structure
+
+The backend uses LangChain for LLM integration with a pool-based configuration system managed via `settings.yaml`.
+
+#### Configuration File: `backend/settings.yaml`
+
+LLM profiles are defined in a flat list structure (depth 1):
+
+```yaml
+llm_list:
+  - name: profile-name          # Profile identifier
+    provider: openai            # Provider: 'openai' or 'azureopenai'
+    model: model-name           # Model name or deployment name
+    base_url: https://api.url   # Base URL for the API
+    api_key: ${API_KEY}         # API key (supports env vars)
+    default: true               # Mark as default (optional)
+```
+
+#### Provider Configuration
+
+**OpenAI Provider (`provider: openai`):**
+- Uses LangChain's `ChatOpenAI` class
+- `base_url`: Full API endpoint URL (e.g., `https://api.openai.com/v1`)
+- `model`: Model name (e.g., `gpt-4`, `gpt-3.5-turbo`)
+- Configuration is passed directly to `ChatOpenAI`:
+  ```python
+  ChatOpenAI(
+      model=model,
+      openai_api_key=api_key,
+      openai_api_base=base_url,
+      streaming=True,
+  )
+  ```
+
+**Azure OpenAI Provider (`provider: azureopenai`):**
+- Uses LangChain's `ChatAzureOpenAI` class
+- **Important**: `base_url` is used **directly** as `azure_endpoint` (no path manipulation)
+- `model`: Azure deployment name (used as `azure_deployment`)
+- Configuration is passed directly to `ChatAzureOpenAI`:
+  ```python
+  ChatAzureOpenAI(
+      azure_endpoint=base_url.rstrip('/'),  # base_url used as-is
+      azure_deployment=model,                # deployment name
+      openai_api_key=api_key,
+      streaming=True,
+  )
+  ```
+- **Note**: Do NOT modify or append paths to `base_url` for Azure OpenAI. The `base_url` value from `settings.yaml` is used exactly as provided for the `azure_endpoint` parameter.
+
+#### Default Model Selection
+
+1. Profiles marked with `default: true` are prioritized
+2. If multiple profiles have `default: true`, the first one found is used
+3. If no profile has `default: true`, the first profile in the list is used as default
+
+#### Implementation Details
+
+- LLM Pool is managed by `LLMList` class in `backend/app/chat/llm_client.py`
+- LangChain integration uses `ChatOpenAI` for OpenAI and `ChatAzureOpenAI` for Azure OpenAI
+- Provider type determines which LangChain class is instantiated (if/elif logic)
+- Streaming is enabled by default for all providers

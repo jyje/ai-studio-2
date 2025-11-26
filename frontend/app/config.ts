@@ -53,8 +53,28 @@ export const getInfoApiUrl = (): string => {
  * Model and agent information interface
  */
 export interface ModelInfo {
-  model: string;
+  profile_name: string;
+  provider: string;
   agent: string;
+}
+
+/**
+ * Individual LLM profile information
+ */
+export interface LLMProfile {
+  name: string;
+  provider: string;
+  model: string;
+  base_url: string;
+  default: boolean;
+}
+
+/**
+ * Models list response interface
+ */
+export interface ModelsListResponse {
+  models: Record<string, LLMProfile[]>;
+  providers: string[];
 }
 
 /**
@@ -67,5 +87,44 @@ export const fetchModelInfo = async (): Promise<ModelInfo> => {
     throw new Error(`Failed to fetch model info: ${response.statusText}`);
   }
   return await response.json();
+};
+
+/**
+ * Get models list API URL
+ */
+export const getModelsApiUrl = (): string => {
+  const baseUrl = chatConfig.backendBaseUrl.replace(/\/$/, ''); // Remove trailing slash
+  return `${baseUrl}/v2/models`;
+};
+
+/**
+ * Fetch available models list from backend
+ */
+export const fetchModelsList = async (): Promise<ModelsListResponse> => {
+  const url = getModelsApiUrl();
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch models list: ${response.statusText}`);
+  }
+  return await response.json();
+};
+
+/**
+ * Get default model profile from models list
+ */
+export const getDefaultModel = (modelsList: ModelsListResponse): LLMProfile | null => {
+  for (const provider of modelsList.providers) {
+    const profiles = modelsList.models[provider] || [];
+    const defaultProfile = profiles.find((p) => p.default);
+    if (defaultProfile) {
+      return defaultProfile;
+    }
+  }
+  // If no default found, return first profile from first provider
+  const firstProvider = modelsList.providers[0];
+  if (firstProvider && modelsList.models[firstProvider]?.length > 0) {
+    return modelsList.models[firstProvider][0];
+  }
+  return null;
 };
 

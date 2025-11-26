@@ -691,7 +691,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                       // Inline code
                       return (
                         <code
-                          className="bg-gray-300 dark:bg-[#252526] dark:text-[#d4d4d4] px-1 py-0.5 rounded text-sm font-mono border dark:border-[#3e3e42]"
+                          className="bg-gray-300 dark:bg-[#eaeaea] dark:text-[#222222] px-0.5 py-0.25 rounded text-sm font-mono border dark:border-[#eaeaea]"
                           {...props}
                         >
                           {children}
@@ -705,14 +705,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   },
                   // Custom styling for paragraphs
                   p: ({ children }) => {
-                    return <p className="mb-2 last:mb-0 text-gray-900 dark:text-[#d4d4d4]">{children}</p>;
+                    return <p className="mb-2 last:mb-0 text-black dark:text-black">{children}</p>;
                   },
                   // Custom styling for lists
                   ul: ({ children }) => {
-                    return <ul className="list-disc list-outside mb-2 space-y-1 pl-6 text-gray-900 dark:text-[#d4d4d4]">{children}</ul>;
+                    return <ul className="list-disc list-outside mb-2 space-y-1 pl-6 text-black dark:text-black">{children}</ul>;
                   },
                   ol: ({ children }) => {
-                    return <ol className="list-decimal list-outside mb-2 space-y-1 pl-6 text-gray-900 dark:text-[#d4d4d4]">{children}</ol>;
+                    return <ol className="list-decimal list-outside mb-2 space-y-1 pl-6 text-black dark:text-black">{children}</ol>;
                   },
                   // Custom styling for list items
                   li: ({ children }) => {
@@ -720,13 +720,13 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   },
                   // Custom styling for headings
                   h1: ({ children }) => {
-                    return <h1 className="text-xl font-bold mb-2 mt-4 first:mt-0 text-gray-900 dark:text-[#cccccc]">{children}</h1>;
+                    return <h1 className="text-xl font-bold mb-2 mt-4 first:mt-0 text-black dark:text-black">{children}</h1>;
                   },
                   h2: ({ children }) => {
-                    return <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0 text-gray-900 dark:text-[#cccccc]">{children}</h2>;
+                    return <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0 text-black dark:text-black">{children}</h2>;
                   },
                   h3: ({ children }) => {
-                    return <h3 className="text-base font-bold mb-2 mt-2 first:mt-0 text-gray-900 dark:text-[#cccccc]">{children}</h3>;
+                    return <h3 className="text-base font-bold mb-2 mt-2 first:mt-0 text-black dark:text-black">{children}</h3>;
                   },
                   // Custom styling for images with preview
                   img: ({ src, alt, ...props }: any) => {
@@ -774,7 +774,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   // Custom styling for blockquote
                   blockquote: ({ children }) => {
                     return (
-                      <blockquote className="border-l-4 border-gray-400 dark:border-[#3e3e42] pl-4 my-2 italic text-gray-700 dark:text-[#d4d4d4] bg-gray-50 dark:bg-[#252526] py-2 rounded-r">
+                      <blockquote className="border-l-4 border-gray-400 dark:border-[#3e3e42] pl-4 my-2 italic text-black dark:text-black bg-gray-50 dark:bg-[#252526] py-2 rounded-r">
                         {children}
                       </blockquote>
                     );
@@ -812,14 +812,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   },
                   th: ({ children }) => {
                     return (
-                      <th className="border border-gray-300 dark:border-[#3e3e42] px-4 py-2 text-left font-semibold text-gray-900 dark:text-[#cccccc]">
+                      <th className="border border-gray-300 dark:border-[#3e3e42] px-4 py-2 text-left font-semibold text-black dark:text-black">
                         {children}
                       </th>
                     );
                   },
                   td: ({ children }) => {
                     return (
-                      <td className="border border-gray-300 dark:border-[#3e3e42] px-4 py-2 text-gray-900 dark:text-[#d4d4d4]">
+                      <td className="border border-gray-300 dark:border-[#3e3e42] px-4 py-2 text-black dark:text-black">
                         {children}
                       </td>
                     );

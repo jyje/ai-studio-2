@@ -1,0 +1,50 @@
+"""Chat domain schemas for request/response models."""
+
+from pydantic import BaseModel, Field
+from typing import Literal, Dict, List, Optional
+
+
+class ChatRequest(BaseModel):
+    """Request schema for chat endpoint."""
+    
+    message: str = Field(..., description="User message content")
+    model: str = Field(..., description="Profile name or model name to use")
+    provider: Optional[Literal["openai", "azureopenai"]] = Field(
+        default=None,
+        description="Optional LLM provider (openai or azureopenai). If not specified, searches by model name."
+    )
+
+
+class ChatInfoResponse(BaseModel):
+    """Response schema for info endpoint."""
+    
+    profile_name: str = Field(..., description="Default LLM profile name")
+    provider: str = Field(..., description="Default LLM provider")
+    agent: str = Field(..., description="Agent name")
+
+
+class ModelInfo(BaseModel):
+    """Schema for individual model/profile information."""
+    
+    name: str = Field(..., description="Profile name")
+    provider: str = Field(..., description="Provider name")
+    model: str = Field(..., description="Model name")
+    base_url: str = Field(..., description="Base URL (acts as entrypoint for Azure OpenAI)")
+    default: bool = Field(default=False, description="Whether this is the default profile")
+
+
+class ModelsListResponse(BaseModel):
+    """Response schema for models list endpoint."""
+    
+    models: Dict[str, List[ModelInfo]] = Field(
+        ...,
+        description="Dictionary mapping provider names to lists of available models"
+    )
+    providers: List[str] = Field(..., description="List of available provider names")
+
+
+class ChatEventData(BaseModel):
+    """Schema for SSE event data."""
+    
+    status: str | None = Field(None, description="Event status")
+    error: str | None = Field(None, description="Error message")

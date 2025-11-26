@@ -335,11 +335,11 @@ html.dark {
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
-  color: inherit;
+  color: #000000;
 }
 
 .dark .markdown-content {
-  color: #d4d4d4;
+  color: #000000;
 }
 
 .markdown-content a {

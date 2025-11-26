@@ -97,7 +97,7 @@ export default function ChatInput({
           {modelInfo && (
             <div className="flex items-center gap-3 mt-1 px-2 text-xs text-gray-500 dark:text-gray-400 h-5">
               <span>
-                {t('chatInput.info.model')}: <span className="font-medium">{modelInfo.model}</span>
+                {t('chatInput.info.model')}: <span className="font-medium">{modelInfo.profile_name}</span>
               </span>
               <span className="text-gray-300 dark:text-gray-600">|</span>
               <span>

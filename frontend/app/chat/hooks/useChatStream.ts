@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Message, ChatStreamOptions, ChatStreamReturn } from './types';
 import { ParsedFile, formatFilesForPrompt } from '../utils/fileParser';
+import { fetchModelsList, getDefaultModel, LLMProfile } from '../../config';
 
 export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
-  const { apiUrl, onError, t } = options;
+  const { apiUrl, onError, t, model, provider } = options;
+  const [selectedLLM, setSelectedLLM] = useState<LLMProfile | null>(null);
   
   // Default translation function (returns key if no translation provided)
   const translate = (key: string): string => {
@@ -13,6 +15,44 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // Load default LLM on mount if not specified
+  useEffect(() => {
+    if (!model && !selectedLLM) {
+      fetchModelsList()
+        .then((modelsList) => {
+          const defaultLLM = getDefaultModel(modelsList);
+          if (defaultLLM) {
+            setSelectedLLM(defaultLLM);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load default LLM:', err);
+        });
+    } else if (model && !selectedLLM) {
+      // If model is specified, try to find it from the list
+      fetchModelsList()
+        .then((modelsList) => {
+          // Try to find by profile name first, then by model name
+          for (const providerName of modelsList.providers) {
+            const profiles = modelsList.models[providerName] || [];
+            const foundProfile = profiles.find((p) => p.name === model || p.model === model);
+            if (foundProfile) {
+              setSelectedLLM(foundProfile);
+              return;
+            }
+          }
+          // If not found and model is specified, use default LLM as fallback
+          const defaultLLM = getDefaultModel(modelsList);
+          if (defaultLLM) {
+            setSelectedLLM(defaultLLM);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load model list:', err);
+        });
+    }
+  }, [model, selectedLLM]);
 
   // Generate unique message ID
   const generateMessageId = (): string => {
@@ -80,6 +120,9 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
         },
         body: JSON.stringify({
           message: augmentedContent, // Send augmented content with file data
+          // Send profile name if available, otherwise send model name
+          model: model || selectedLLM?.name || selectedLLM?.model || '',
+          ...(provider || selectedLLM?.provider ? { provider: provider || selectedLLM?.provider } : {}),
         }),
         signal: abortController.signal,
       });

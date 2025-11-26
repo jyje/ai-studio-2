@@ -1,23 +1,23 @@
 """
-Configuration settings for the backend application.
+Configuration settings for the backend application using dynaconf.
 
-A.X 4.0 API Configuration:
-- Source: https://github.com/SKT-AI/A.X-4.0/blob/main/apis/README.md
-- API Documentation: https://raw.githubusercontent.com/SKT-AI/A.X-4.0/main/apis/README.md
+Configuration is loaded from settings.yaml file.
+Environment variables can override settings using dynaconf syntax.
 """
 
-import os
+from pathlib import Path
+from dynaconf import Dynaconf
 
-# LLM API Configuration
-## using SKT-AI's A.X 4.0
-## Public API key for anonymous users (FREE tier)
-## Source: https://github.com/SKT-AI/A.X-4.0/blob/main/apis/README.md
-LLM_API_BASE_URL = os.getenv(
-    "LLM_API_BASE_URL",
-    "https://guest-api.sktax.chat/v1"
+# Get the backend directory (parent of app directory)
+BACKEND_DIR = Path(__file__).parent.parent
+SETTINGS_FILE = BACKEND_DIR / 'settings.yaml'
+
+# Initialize dynaconf settings
+# Settings will be loaded from settings.yaml in the backend directory
+settings = Dynaconf(
+    settings_files=[str(SETTINGS_FILE)],
+    root_path=str(BACKEND_DIR),
+    environments=False,  # Disable environment-based config for simplicity
+    envvar_prefix=False,  # Don't require DYNACONF_ prefix
+    load_dotenv=True,  # Load .env file if exists
 )
-LLM_API_KEY = os.getenv(
-    "LLM_API_KEY",
-    "sktax-XyeKFrq67ZjS4EpsDlrHHXV8it"
-)
-LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "ax4")

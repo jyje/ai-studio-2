@@ -12,6 +12,8 @@ export interface ChatStreamOptions {
   apiUrl: string;
   onError?: (error: Error) => void;
   t?: (key: string) => string;
+  model?: string; // Optional: profile name or model name
+  provider?: 'openai' | 'azureopenai'; // Optional: provider name
 }
 
 export interface ChatStreamReturn {
