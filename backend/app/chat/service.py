@@ -238,6 +238,18 @@ class ChatService:
                         content_json = json.dumps(content)
                         yield f"data: {content_json}\n\n"
                 
+                elif event_type == "node_start":
+                    # Send node start event for graph visualization
+                    node_name = event.get("node", "unknown")
+                    yield "event: node_start\n"
+                    yield f"data: {json.dumps({'node': node_name})}\n\n"
+                
+                elif event_type == "node_end":
+                    # Send node end event for graph visualization
+                    node_name = event.get("node", "unknown")
+                    yield "event: node_end\n"
+                    yield f"data: {json.dumps({'node': node_name})}\n\n"
+                
                 elif event_type == "tool_start":
                     # Send tool start event
                     tool_name = event.get("tool", "unknown")

@@ -7,6 +7,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
   const { apiUrl, onError, t, model, provider, agentType } = options;
   const [selectedLLM, setSelectedLLM] = useState<LLMProfile | null>(null);
   const [selectedAgentType, setSelectedAgentType] = useState<AgentType>(agentType || 'langgraph');
+  const [currentNode, setCurrentNode] = useState<string | null>(null);
   
   // Session ID for multi-turn conversation - generated once on mount
   const sessionIdRef = useRef<string>(generateSessionId());
@@ -298,6 +299,26 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
             finalizeMessage(accumulatedContent);
             streamEnded = true;
             break;
+          } else if (eventType === 'node_start') {
+            // Node started - update current node for graph visualization
+            try {
+              const nodeData = JSON.parse(data);
+              console.log(`[DEBUG] Node start: ${nodeData.node}`);
+              setCurrentNode(nodeData.node);
+            } catch (e) {
+              console.error('Failed to parse node_start data:', e);
+            }
+            continue;
+          } else if (eventType === 'node_end') {
+            // Node ended - clear current node if it matches
+            try {
+              const nodeData = JSON.parse(data);
+              console.log(`[DEBUG] Node end: ${nodeData.node}`);
+              // Don't clear immediately, let the next node_start update it
+            } catch (e) {
+              console.error('Failed to parse node_end data:', e);
+            }
+            continue;
           } else if (eventType === 'tool_start') {
             // Tool is starting
             try {
@@ -401,6 +422,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
       }
     } finally {
       setIsLoading(false);
+      setCurrentNode(null); // Clear current node when streaming ends
       abortControllerRef.current = null;
     }
   };
@@ -487,6 +509,7 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
     setSelectedAgentType,
     sessionId,
     resetSession,
+    currentNode,
   };
 }
 

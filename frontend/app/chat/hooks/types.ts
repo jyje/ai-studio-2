@@ -53,5 +53,6 @@ export interface ChatStreamReturn {
   setSelectedAgentType: (agentType: AgentType) => void;
   sessionId: string;
   resetSession: () => void; // Reset session and clear messages
+  currentNode: string | null; // Currently active node in the agent graph
 }
 

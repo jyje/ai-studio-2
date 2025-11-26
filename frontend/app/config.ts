@@ -112,6 +112,53 @@ export const getModelsApiUrl = (): string => {
 };
 
 /**
+ * Get graph structure API URL
+ */
+export const getGraphApiUrl = (): string => {
+  const baseUrl = chatConfig.backendBaseUrl.replace(/\/$/, ''); // Remove trailing slash
+  return `${baseUrl}/v2/graph`;
+};
+
+/**
+ * Graph node interface
+ */
+export interface GraphNode {
+  id: string;
+  type: 'start' | 'end' | 'node';
+  label?: string;
+}
+
+/**
+ * Graph edge interface
+ */
+export interface GraphEdge {
+  source: string;
+  target: string;
+  conditional?: boolean;
+  label?: string;
+}
+
+/**
+ * Graph structure response interface
+ */
+export interface GraphStructureResponse {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+/**
+ * Fetch graph structure from backend
+ */
+export const fetchGraphStructure = async (): Promise<GraphStructureResponse> => {
+  const url = getGraphApiUrl();
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch graph structure: ${response.statusText}`);
+  }
+  return await response.json();
+};
+
+/**
  * Fetch available models list from backend
  */
 export const fetchModelsList = async (): Promise<ModelsListResponse> => {

@@ -17,7 +17,7 @@ export const en = {
     info: {
       model: 'Model',
       agent: 'Agent',
-      agentType: 'Agent Type',
+      agentType: 'Agent',
     },
     profile: {
       default: 'Default',
@@ -74,6 +74,22 @@ export const en = {
       light: 'Light',
       dark: 'Dark',
       system: 'System',
+    },
+  },
+  // Agent Graph Panel
+  agentGraph: {
+    title: 'Agent Graph',
+    showGraph: 'Show Graph',
+    expand: 'Expand',
+    collapse: 'Collapse',
+    loading: 'Loading graph...',
+    error: 'Failed to load graph',
+    resetPosition: 'Reset Position',
+    nodes: {
+      start: 'Start',
+      end: 'End',
+      agent: 'Agent',
+      tools: 'Tools',
     },
   },
   // Welcome screen

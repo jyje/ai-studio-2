@@ -7,6 +7,7 @@ import { useTranslation } from '@/app/i18n/hooks/useTranslation';
 import MessageBubble from './components/MessageBubble';
 import ChatInput from './components/ChatInput';
 import ErrorMessage from './components/ErrorMessage';
+import AgentGraphPanel from './components/AgentGraphPanel';
 
 export default function Chat() {
   const { t, locale } = useTranslation();
@@ -14,7 +15,7 @@ export default function Chat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef<boolean>(true);
-  const { messages, isLoading, error, sendMessage, addMessage, abort, clearError, selectedLLM, setSelectedLLM, selectedAgentType, setSelectedAgentType } = useChatStream({
+  const { messages, isLoading, error, sendMessage, addMessage, abort, clearError, selectedLLM, setSelectedLLM, selectedAgentType, setSelectedAgentType, currentNode } = useChatStream({
     apiUrl: getChatApiUrl(),
     t,
     onError: (err) => {
@@ -23,6 +24,7 @@ export default function Chat() {
   });
   const [modelsList, setModelsList] = useState<ModelsListResponse | null>(null);
   const [allProfiles, setAllProfiles] = useState<LLMProfile[]>([]);
+  const [showAgentGraph, setShowAgentGraph] = useState(false);
 
   // Fetch models list on mount
   useEffect(() => {
@@ -222,6 +224,15 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col w-full max-w-full md:max-w-2xl lg:max-w-4xl py-24 mx-auto stretch px-4">
+      {/* Agent Graph Panel - floating, show when enabled and LangGraph selected */}
+      {selectedAgentType === 'langgraph' && showAgentGraph && (
+        <AgentGraphPanel 
+          currentNode={currentNode} 
+          isLoading={isLoading} 
+          onClose={() => setShowAgentGraph(false)}
+        />
+      )}
+      
       {/* Welcome screen - only show when no messages */}
       {!hasMessages && (
         <div className="flex flex-col items-center justify-center min-h-[60vh] pb-32">
@@ -267,6 +278,8 @@ export default function Chat() {
         onProfileChange={setSelectedLLM}
         selectedAgentType={selectedAgentType}
         onAgentTypeChange={setSelectedAgentType}
+        showAgentGraph={showAgentGraph}
+        onToggleAgentGraph={setShowAgentGraph}
       />
     </div>
   );

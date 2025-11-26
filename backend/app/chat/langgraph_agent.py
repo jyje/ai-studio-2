@@ -1,6 +1,6 @@
 """LangGraph ReAct agent implementation."""
 
-from typing import TypedDict, Annotated, Sequence, Optional, List, Any
+from typing import TypedDict, Annotated, Sequence, Optional, List, Any, Dict
 import operator
 
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage, SystemMessage
@@ -9,6 +9,11 @@ from langgraph.prebuilt import ToolNode
 
 from app.chat.tools import AVAILABLE_TOOLS
 from app.chat.llm_client import LLMClient
+
+
+# Constants for special node names in LangGraph
+START_NODE = "__start__"
+END_NODE = "__end__"
 
 
 class AgentState(TypedDict):
@@ -71,6 +76,61 @@ class LangGraphReActAgent:
         
         # Compile the graph
         return workflow.compile()
+    
+    def get_graph_structure(self) -> Dict[str, Any]:
+        """Extract the graph structure for visualization.
+        
+        Returns:
+            Dictionary with nodes and edges information.
+        """
+        graph = self.graph.get_graph()
+        
+        nodes = []
+        edges = []
+        
+        # Extract nodes from the graph
+        for node_id in graph.nodes:
+            node_type = "node"
+            if node_id == START_NODE:
+                node_type = "start"
+            elif node_id == END_NODE:
+                node_type = "end"
+            
+            # Create a display label (capitalize for display)
+            label = node_id
+            if node_id not in (START_NODE, END_NODE):
+                label = node_id.replace("_", " ").title()
+            
+            nodes.append({
+                "id": node_id,
+                "type": node_type,
+                "label": label
+            })
+        
+        # Extract edges from the graph
+        for edge in graph.edges:
+            source = edge.source
+            target = edge.target
+            
+            # Check if this is a conditional edge
+            conditional = edge.conditional
+            label = None
+            
+            # For conditional edges, try to get a meaningful label
+            if conditional and edge.data:
+                label = str(edge.data) if edge.data else None
+            
+            edges.append({
+                "source": source,
+                "target": target,
+                "conditional": conditional,
+                "label": label
+            })
+        
+        return {
+            "nodes": nodes,
+            "edges": edges
+        }
     
     def _agent_node(self, state: AgentState) -> dict:
         """Agent node that calls the LLM with tools.
@@ -234,13 +294,16 @@ class LangGraphReActAgent:
             system_prompt: Optional system prompt to set agent behavior.
             
         Yields:
-            Chunks of the response as they are generated.
+            Chunks of the response as they are generated, including node transition events.
         """
         messages = self._prepare_messages(
             user_message,
             history_messages=history_messages,
             system_prompt=system_prompt
         )
+        
+        # Track current node to avoid duplicate events
+        current_node: Optional[str] = None
         
         # Stream the agent execution
         async for event in self.graph.astream_events(
@@ -249,7 +312,28 @@ class LangGraphReActAgent:
         ):
             kind = event["event"]
             
-            if kind == "on_chat_model_stream":
+            # Handle node transitions (on_chain_start for graph nodes)
+            if kind == "on_chain_start":
+                # Extract node name from the event
+                node_name = event.get("name", "")
+                # LangGraph node names are typically the node IDs we defined
+                if node_name in ("agent", "tools") and node_name != current_node:
+                    current_node = node_name
+                    yield {
+                        "type": "node_start",
+                        "node": node_name
+                    }
+            
+            elif kind == "on_chain_end":
+                # Node finished execution
+                node_name = event.get("name", "")
+                if node_name in ("agent", "tools") and node_name == current_node:
+                    yield {
+                        "type": "node_end",
+                        "node": node_name
+                    }
+            
+            elif kind == "on_chat_model_stream":
                 # Streaming tokens from the LLM
                 content = event["data"]["chunk"].content
                 if content:

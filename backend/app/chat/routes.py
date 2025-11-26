@@ -1,15 +1,19 @@
 """Chat API routes."""
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import StreamingResponse
 from app.chat.service import chat_service
 from app.chat.schemas import (
     ChatRequest,
     ChatInfoResponse,
     ModelsListResponse,
-    ModelInfo
+    ModelInfo,
+    GraphStructureResponse,
+    GraphNode,
+    GraphEdge
 )
 from app.chat.llm_client import llm_list
+from app.chat.langgraph_agent import create_react_agent
 from app.config import settings
 
 router = APIRouter(prefix="/v2", tags=["chat"])
@@ -66,6 +70,34 @@ def get_models() -> ModelsListResponse:
         models=models_info,
         providers=providers_order  # Maintain order from settings.yaml
     )
+
+
+@router.get('/graph', response_model=GraphStructureResponse)
+def get_graph_structure() -> GraphStructureResponse:
+    """Get the LangGraph agent structure for visualization.
+    
+    Returns the nodes and edges of the ReAct agent graph.
+    This allows the frontend to dynamically render the agent structure
+    without hardcoding the graph topology.
+    """
+    # Get a default LLM client to create an agent
+    default_client = llm_list.get_default_client()
+    
+    if not default_client:
+        raise HTTPException(
+            status_code=503,
+            detail="No LLM client available. Please configure at least one LLM profile."
+        )
+    
+    # Create a temporary agent to extract graph structure
+    agent = create_react_agent(default_client)
+    graph_data = agent.get_graph_structure()
+    
+    # Convert to response schema
+    nodes = [GraphNode(**node) for node in graph_data["nodes"]]
+    edges = [GraphEdge(**edge) for edge in graph_data["edges"]]
+    
+    return GraphStructureResponse(nodes=nodes, edges=edges)
 
 
 @router.post('/chat')

@@ -16,6 +16,8 @@ interface ChatInputProps {
   onProfileChange?: (profile: LLMProfile | null) => void;
   selectedAgentType?: AgentType;
   onAgentTypeChange?: (agentType: AgentType) => void;
+  showAgentGraph?: boolean;
+  onToggleAgentGraph?: (show: boolean) => void;
 }
 
 export default function ChatInput({
@@ -30,6 +32,8 @@ export default function ChatInput({
   onProfileChange,
   selectedAgentType = 'basic',
   onAgentTypeChange,
+  showAgentGraph = false,
+  onToggleAgentGraph,
 }: ChatInputProps) {
   const { t } = useTranslation();
   const hasInput = value.trim().length > 0;
@@ -276,7 +280,7 @@ export default function ChatInput({
                 </span>
                 {showAgentDropdown && (
                   <div
-                    className="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 min-w-[180px]"
+                    className="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 min-w-[200px]"
                     onMouseEnter={() => {
                       if (agentHoverTimeoutRef.current) {
                         clearTimeout(agentHoverTimeoutRef.current);
@@ -317,6 +321,26 @@ export default function ChatInput({
                         </button>
                       );
                     })}
+                    {/* Show Agent Graph checkbox - only for LangGraph */}
+                    {selectedAgentType === 'langgraph' && onToggleAgentGraph && (
+                      <>
+                        <div className="border-t border-gray-200 dark:border-[#3e3e42] my-1" />
+                        <label
+                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#2d2d30] cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={showAgentGraph}
+                            onChange={(e) => onToggleAgentGraph(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 dark:border-[#3e3e42] text-blue-500 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <span className="text-gray-700 dark:text-[#cccccc]">
+                            {t('agentGraph.showGraph')}
+                          </span>
+                        </label>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

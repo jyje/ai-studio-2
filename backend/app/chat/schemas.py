@@ -60,3 +60,27 @@ class ChatEventData(BaseModel):
     
     status: str | None = Field(None, description="Event status")
     error: str | None = Field(None, description="Error message")
+
+
+class GraphNode(BaseModel):
+    """Schema for a node in the agent graph."""
+    
+    id: str = Field(..., description="Node identifier")
+    type: Literal["start", "end", "node"] = Field(..., description="Node type")
+    label: Optional[str] = Field(None, description="Display label for the node")
+
+
+class GraphEdge(BaseModel):
+    """Schema for an edge in the agent graph."""
+    
+    source: str = Field(..., description="Source node ID")
+    target: str = Field(..., description="Target node ID")
+    conditional: bool = Field(default=False, description="Whether this is a conditional edge")
+    label: Optional[str] = Field(None, description="Edge label for conditional edges")
+
+
+class GraphStructureResponse(BaseModel):
+    """Response schema for graph structure endpoint."""
+    
+    nodes: List[GraphNode] = Field(..., description="List of nodes in the graph")
+    edges: List[GraphEdge] = Field(..., description="List of edges in the graph")

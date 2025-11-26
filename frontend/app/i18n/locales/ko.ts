@@ -17,7 +17,7 @@ export const ko = {
     info: {
       model: '모델',
       agent: '에이전트',
-      agentType: '에이전트 타입',
+      agentType: '에이전트',
     },
     profile: {
       default: '기본',
@@ -74,6 +74,22 @@ export const ko = {
       light: '라이트',
       dark: '다크',
       system: '시스템 설정',
+    },
+  },
+  // Agent Graph Panel
+  agentGraph: {
+    title: '에이전트 그래프',
+    showGraph: '그래프 보기',
+    expand: '펼치기',
+    collapse: '접기',
+    loading: '그래프 로딩 중...',
+    error: '그래프를 불러올 수 없습니다',
+    resetPosition: '위치 초기화',
+    nodes: {
+      start: '시작',
+      end: '종료',
+      agent: '에이전트',
+      tools: '도구',
     },
   },
   // Welcome screen
