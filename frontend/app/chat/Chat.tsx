@@ -9,7 +9,7 @@ import ChatInput from './components/ChatInput';
 import ErrorMessage from './components/ErrorMessage';
 
 export default function Chat() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -33,12 +33,11 @@ export default function Chat() {
   const [randomExamples, setRandomExamples] = useState<string[]>([]);
   const hasMessages = messages.length > 0;
 
-  // Set random examples only on client side
+  // Set random examples on client side and update when locale changes
   useEffect(() => {
-    if (randomExamples.length === 0) {
-      setRandomExamples(getRandomExamples());
-    }
-  }, []);
+    setRandomExamples(getRandomExamples());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale]); // Only depend on locale to avoid infinite loop
 
   // Check if user is at the bottom of the page scroll
   const isAtBottom = (): boolean => {
