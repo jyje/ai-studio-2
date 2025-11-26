@@ -28,6 +28,8 @@ export const ko = {
       basicDescription: 'LLM 직접 대화',
       langgraph: 'LangGraph',
       langgraphDescription: '도구 사용 ReAct 에이전트',
+      'plan-1': 'Plan-1',
+      'plan-1Description': '계획 수립 후 실행 에이전트',
     },
   },
   // File upload
@@ -90,6 +92,9 @@ export const ko = {
       end: '종료',
       agent: '에이전트',
       tools: '도구',
+      QUERY: '분석',
+      MAIN: '메인',
+      TOOL: '도구',
     },
   },
   // Welcome screen

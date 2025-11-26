@@ -9,16 +9,17 @@ export interface ChatConfig {
 }
 
 /**
- * Agent type for selecting between basic LLM and LangGraph ReAct agent
+ * Agent type for selecting between basic LLM and LangGraph agents
  */
-export type AgentType = 'basic' | 'langgraph';
+export type AgentType = 'basic' | 'langgraph' | 'plan-1';
 
 /**
  * Agent type options for UI display
  */
-export const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = [
-  { value: 'basic', label: 'Basic', description: 'Direct LLM chat' },
-  { value: 'langgraph', label: 'LangGraph', description: 'ReAct agent with tools' },
+export const AGENT_TYPES: { value: AgentType; label: string; description: string; hasGraph: boolean }[] = [
+  { value: 'basic', label: 'Basic', description: 'Direct LLM chat', hasGraph: false },
+  { value: 'langgraph', label: 'LangGraph', description: 'ReAct agent with tools', hasGraph: true },
+  { value: 'plan-1', label: 'Plan-1', description: 'Planning agent with QUERY/MAIN/TOOL', hasGraph: true },
 ];
 
 /**
@@ -148,9 +149,11 @@ export interface GraphStructureResponse {
 
 /**
  * Fetch graph structure from backend
+ * @param agentType - Optional agent type to get the graph for (default: 'langgraph')
  */
-export const fetchGraphStructure = async (): Promise<GraphStructureResponse> => {
-  const url = getGraphApiUrl();
+export const fetchGraphStructure = async (agentType: AgentType = 'langgraph'): Promise<GraphStructureResponse> => {
+  const baseUrl = getGraphApiUrl();
+  const url = `${baseUrl}?agent_type=${encodeURIComponent(agentType)}`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch graph structure: ${response.statusText}`);

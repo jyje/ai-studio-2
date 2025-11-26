@@ -28,6 +28,8 @@ export const en = {
       basicDescription: 'Direct LLM chat',
       langgraph: 'LangGraph',
       langgraphDescription: 'ReAct agent with tools',
+      'plan-1': 'Plan-1',
+      'plan-1Description': 'Planning and execution agent',
     },
   },
   // File upload
@@ -90,6 +92,9 @@ export const en = {
       end: 'End',
       agent: 'Agent',
       tools: 'Tools',
+      QUERY: 'Query',
+      MAIN: 'Main',
+      TOOL: 'Tool',
     },
   },
   // Welcome screen

@@ -5,7 +5,7 @@ from typing import Literal, Dict, List, Optional
 
 
 # Agent type literal for type safety
-AgentType = Literal["basic", "langgraph"]
+AgentType = Literal["basic", "langgraph", "plan-1"]
 
 
 class ChatRequest(BaseModel):

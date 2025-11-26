@@ -14,6 +14,7 @@ from app.chat.schemas import (
 )
 from app.chat.llm_client import llm_list
 from app.chat.langgraph_agent import create_react_agent
+from app.chat.plan_agent import create_plan_agent
 from app.config import settings
 
 router = APIRouter(prefix="/v2", tags=["chat"])
@@ -73,12 +74,15 @@ def get_models() -> ModelsListResponse:
 
 
 @router.get('/graph', response_model=GraphStructureResponse)
-def get_graph_structure() -> GraphStructureResponse:
-    """Get the LangGraph agent structure for visualization.
+def get_graph_structure(agent_type: str = "langgraph") -> GraphStructureResponse:
+    """Get the agent graph structure for visualization.
     
-    Returns the nodes and edges of the ReAct agent graph.
+    Returns the nodes and edges of the specified agent graph.
     This allows the frontend to dynamically render the agent structure
     without hardcoding the graph topology.
+    
+    Args:
+        agent_type: Type of agent to get graph for ('langgraph' or 'plan-1').
     """
     # Get a default LLM client to create an agent
     default_client = llm_list.get_default_client()
@@ -89,8 +93,13 @@ def get_graph_structure() -> GraphStructureResponse:
             detail="No LLM client available. Please configure at least one LLM profile."
         )
     
-    # Create a temporary agent to extract graph structure
-    agent = create_react_agent(default_client)
+    # Create the appropriate agent based on type
+    if agent_type == "plan-1":
+        agent = create_plan_agent(default_client)
+    else:
+        # Default to langgraph (ReAct agent)
+        agent = create_react_agent(default_client)
+    
     graph_data = agent.get_graph_structure()
     
     # Convert to response schema

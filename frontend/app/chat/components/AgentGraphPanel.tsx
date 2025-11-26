@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from '@/app/i18n/hooks/useTranslation';
-import { fetchGraphStructure, GraphNode, GraphEdge } from '@/app/config';
+import { fetchGraphStructure, GraphNode, GraphEdge, AgentType } from '@/app/config';
 
 interface AgentGraphPanelProps {
   currentNode: string | null;
   isLoading?: boolean;
   onClose?: () => void;
+  agentType?: AgentType;
 }
 
 interface NodePosition {
@@ -27,9 +28,9 @@ interface PanelSize {
 
 // Constants for panel sizing
 const MIN_WIDTH = 300;
-const MIN_HEIGHT = 150;
-const MAX_HEIGHT = 400;
-const DEFAULT_HEIGHT = 200;
+const MIN_HEIGHT = 180;
+const MAX_HEIGHT = 500;
+const DEFAULT_HEIGHT = 250;
 
 // LocalStorage keys for panel state persistence
 const PANEL_POSITION_KEY = 'agent-graph-panel-position';
@@ -44,21 +45,84 @@ function calculateNodePositions(nodes: GraphNode[], edges: GraphEdge[]): Map<str
   const endNode = nodes.find(n => n.type === 'end');
   const regularNodes = nodes.filter(n => n.type === 'node');
   
-  // Build adjacency list for topological ordering
+  // Build adjacency list and reverse adjacency
   const adjacency = new Map<string, string[]>();
-  nodes.forEach(n => adjacency.set(n.id, []));
+  const reverseAdjacency = new Map<string, string[]>();
+  nodes.forEach(n => {
+    adjacency.set(n.id, []);
+    reverseAdjacency.set(n.id, []);
+  });
   edges.forEach(e => {
     const sources = adjacency.get(e.source) || [];
     if (!sources.includes(e.target)) {
       sources.push(e.target);
       adjacency.set(e.source, sources);
     }
+    const targets = reverseAdjacency.get(e.target) || [];
+    if (!targets.includes(e.source)) {
+      targets.push(e.source);
+      reverseAdjacency.set(e.target, targets);
+    }
   });
   
-  // Simple left-to-right layout
-  const nodeSpacing = 160;
+  // Find nodes that are in loops (have bidirectional edges with another node)
+  const loopNodes = new Set<string>();
+  regularNodes.forEach(node => {
+    const targets = adjacency.get(node.id) || [];
+    targets.forEach(target => {
+      const reverseTargets = adjacency.get(target) || [];
+      if (reverseTargets.includes(node.id)) {
+        // Found a loop between node and target
+        loopNodes.add(node.id);
+        loopNodes.add(target);
+      }
+    });
+  });
+  
+  // Find main flow nodes (not just loop nodes, but nodes on the main path)
+  const mainFlowNodes: GraphNode[] = [];
+  const secondaryNodes: GraphNode[] = [];
+  
+  // Determine main flow: nodes directly connected from start or that connect to end
+  regularNodes.forEach(node => {
+    const hasConnectionFromStart = edges.some(e => e.source === startNode?.id && e.target === node.id);
+    const hasConnectionToEnd = edges.some(e => e.source === node.id && e.target === endNode?.id);
+    const isMainAgent = node.id.toLowerCase().includes('agent') || node.id.toLowerCase().includes('main') || node.id === 'MAIN';
+    const isQueryNode = node.id.toLowerCase().includes('query') || node.id === 'QUERY';
+    
+    if (hasConnectionFromStart || hasConnectionToEnd || isMainAgent || isQueryNode) {
+      mainFlowNodes.push(node);
+    } else {
+      secondaryNodes.push(node);
+    }
+  });
+  
+  // If we didn't categorize properly, use simple ordering
+  if (mainFlowNodes.length === 0) {
+    mainFlowNodes.push(...regularNodes);
+  }
+  
+  // Sort main flow nodes by their position in the flow
+  mainFlowNodes.sort((a, b) => {
+    const aFromStart = edges.some(e => e.source === startNode?.id && e.target === a.id);
+    const bFromStart = edges.some(e => e.source === startNode?.id && e.target === b.id);
+    if (aFromStart && !bFromStart) return -1;
+    if (!aFromStart && bFromStart) return 1;
+    
+    // Check if a connects to b
+    const aToB = edges.some(e => e.source === a.id && e.target === b.id);
+    const bToA = edges.some(e => e.source === b.id && e.target === a.id);
+    if (aToB && !bToA) return -1;
+    if (bToA && !aToB) return 1;
+    
+    return 0;
+  });
+  
+  // Layout settings
+  const nodeSpacing = 140;
+  const rowSpacing = 90;
   const startX = 60;
-  const centerY = 60;
+  const centerY = 50;
   
   let x = startX;
   
@@ -68,34 +132,40 @@ function calculateNodePositions(nodes: GraphNode[], edges: GraphEdge[]): Map<str
     x += nodeSpacing;
   }
   
-  // Position regular nodes (simple linear for now, could be improved for complex graphs)
-  // Sort by dependencies: nodes that are targets of start come first
-  const orderedRegularNodes = [...regularNodes].sort((a, b) => {
-    const aFromStart = edges.some(e => e.source === startNode?.id && e.target === a.id);
-    const bFromStart = edges.some(e => e.source === startNode?.id && e.target === b.id);
-    if (aFromStart && !bFromStart) return -1;
-    if (!aFromStart && bFromStart) return 1;
-    return 0;
-  });
-  
-  orderedRegularNodes.forEach((node, index) => {
-    // Check if there are multiple nodes at this level
-    const isMultiRow = orderedRegularNodes.length > 1 && 
-      edges.some(e => e.source === node.id && orderedRegularNodes.some(n => n.id === e.target));
-    
-    if (isMultiRow && index > 0) {
-      // Stack vertically for nodes that loop back
-      positions.set(node.id, { x: x - nodeSpacing / 2, y: centerY + 80 });
-    } else {
-      positions.set(node.id, { x, y: centerY });
-      x += nodeSpacing;
-    }
+  // Position main flow nodes
+  const mainNodeX = new Map<string, number>();
+  mainFlowNodes.forEach((node) => {
+    positions.set(node.id, { x, y: centerY });
+    mainNodeX.set(node.id, x);
+    x += nodeSpacing;
   });
   
   // Position end node
   if (endNode) {
     positions.set(endNode.id, { x, y: centerY });
   }
+  
+  // Position secondary nodes (tool nodes, etc.) below their connected main node
+  secondaryNodes.forEach((node, index) => {
+    // Find which main node this secondary node connects to
+    const connectedMainNode = mainFlowNodes.find(mainNode => {
+      return edges.some(e => 
+        (e.source === mainNode.id && e.target === node.id) ||
+        (e.source === node.id && e.target === mainNode.id)
+      );
+    });
+    
+    if (connectedMainNode && mainNodeX.has(connectedMainNode.id)) {
+      const mainX = mainNodeX.get(connectedMainNode.id)!;
+      positions.set(node.id, { x: mainX, y: centerY + rowSpacing });
+    } else {
+      // Fallback: position at the end
+      positions.set(node.id, { 
+        x: startX + (mainFlowNodes.length + index) * nodeSpacing, 
+        y: centerY + rowSpacing 
+      });
+    }
+  });
   
   return positions;
 }
@@ -108,8 +178,8 @@ function generateEdgePath(
   targetType: string,
   isLoop: boolean = false
 ): string {
-  const nodeRadius = 24;
-  const startEndRadius = 12;
+  const nodeRadius = 32;
+  const startEndRadius = 14;
   
   const sourceR = sourceType === 'start' || sourceType === 'end' ? startEndRadius : nodeRadius;
   const targetR = targetType === 'start' || targetType === 'end' ? startEndRadius : nodeRadius;
@@ -140,7 +210,7 @@ function generateEdgePath(
   return `M ${startX} ${startY} L ${endX} ${endY}`;
 }
 
-export default function AgentGraphPanel({ currentNode, isLoading = false, onClose }: AgentGraphPanelProps) {
+export default function AgentGraphPanel({ currentNode, isLoading = false, onClose, agentType = 'langgraph' }: AgentGraphPanelProps) {
   const { t } = useTranslation();
   
   const [isExpanded, setIsExpanded] = useState(true);
@@ -337,9 +407,11 @@ export default function AgentGraphPanel({ currentNode, isLoading = false, onClos
     localStorage.removeItem(PANEL_SIZE_KEY);
   }, [getDefaultWidth]);
   
-  // Fetch graph structure on mount only
+  // Fetch graph structure when component mounts or agent type changes
   useEffect(() => {
-    fetchGraphStructure()
+    setLoading(true);
+    setError(null);
+    fetchGraphStructure(agentType)
       .then((data) => {
         setGraphData(data);
         setLoading(false);
@@ -349,7 +421,7 @@ export default function AgentGraphPanel({ currentNode, isLoading = false, onClos
         setError('Failed to load graph');
         setLoading(false);
       });
-  }, []); // Empty deps - fetch only once on mount
+  }, [agentType]); // Refetch when agent type changes
   
   // Calculate node positions
   const nodePositions = useMemo(() => {
@@ -382,7 +454,7 @@ export default function AgentGraphPanel({ currentNode, isLoading = false, onClos
     left: position?.x ?? '50%',
     transform: position ? 'none' : 'translateX(-50%)',
     width: size?.width ?? getDefaultWidth(),
-    zIndex: 50,
+    zIndex: 10000, // High z-index to be above dev tools and other overlays
     cursor: isDragging ? 'grabbing' : 'default',
     userSelect: isDragging || isResizing ? 'none' : 'auto',
   };
@@ -657,7 +729,7 @@ export default function AgentGraphPanel({ currentNode, isLoading = false, onClos
                   
                   const active = isNodeActive(node.id);
                   const isStartOrEnd = node.type === 'start' || node.type === 'end';
-                  const radius = isStartOrEnd ? 12 : 24;
+                  const radius = isStartOrEnd ? 14 : 32;
                   
                   return (
                     <g key={node.id} transform={`translate(${pos.x}, ${pos.y})`}>
@@ -671,7 +743,7 @@ export default function AgentGraphPanel({ currentNode, isLoading = false, onClos
                             ? 'text-blue-500'
                             : isStartOrEnd
                             ? 'text-gray-400 dark:text-[#6e6e6e]'
-                            : 'text-gray-200 dark:text-[#3e3e42]'
+                            : 'text-white dark:text-[#2d2d30]'
                         }`}
                       />
                       {/* Node border */}
@@ -698,7 +770,7 @@ export default function AgentGraphPanel({ currentNode, isLoading = false, onClos
                           <animate
                             attributeName="r"
                             from={radius}
-                            to={radius + 10}
+                            to={radius + 12}
                             dur="1s"
                             repeatCount="indefinite"
                           />
@@ -711,15 +783,16 @@ export default function AgentGraphPanel({ currentNode, isLoading = false, onClos
                           />
                         </circle>
                       )}
-                      {/* Node label */}
+                      {/* Node label - inside the circle */}
                       {!isStartOrEnd && (
                         <text
-                          y={radius + 16}
+                          y={0}
                           textAnchor="middle"
-                          className={`text-xs font-medium fill-current transition-colors duration-300 ${
+                          dominantBaseline="middle"
+                          className={`text-xs font-semibold fill-current transition-colors duration-300 pointer-events-none ${
                             active
-                              ? 'text-blue-600 dark:text-blue-400'
-                              : 'text-gray-600 dark:text-[#cccccc]'
+                              ? 'text-white'
+                              : 'text-gray-700 dark:text-[#cccccc]'
                           }`}
                         >
                           {getNodeLabel(node)}
@@ -728,17 +801,17 @@ export default function AgentGraphPanel({ currentNode, isLoading = false, onClos
                       {/* Icon for start/end nodes */}
                       {node.type === 'start' && (
                         <polygon
-                          points="-4,-5 6,0 -4,5"
+                          points="-5,-6 7,0 -5,6"
                           fill="white"
                           transform="translate(1, 0)"
                         />
                       )}
                       {node.type === 'end' && (
                         <rect
-                          x="-4"
-                          y="-4"
-                          width="8"
-                          height="8"
+                          x="-5"
+                          y="-5"
+                          width="10"
+                          height="10"
                           fill="white"
                         />
                       )}

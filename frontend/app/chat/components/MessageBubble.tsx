@@ -860,7 +860,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  {message.meta.agentType === 'langgraph' ? 'LangGraph' : 'Basic'}
+                  {message.meta.agentType === 'langgraph' ? 'LangGraph' : message.meta.agentType === 'plan-1' ? 'Plan-1' : 'Basic'}
                 </span>
               </>
             )}

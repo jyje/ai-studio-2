@@ -6,6 +6,7 @@ from fastapi import Request, HTTPException
 import json
 from app.chat.llm_client import llm_list, LLMClient
 from app.chat.langgraph_agent import create_react_agent
+from app.chat.plan_agent import create_plan_agent
 from app.chat.memory_store import session_store
 
 
@@ -73,7 +74,7 @@ class ChatService:
         model: str,
         request: Request,
         provider: str = None,
-        agent_type: Literal["basic", "langgraph"] = "basic",
+        agent_type: Literal["basic", "langgraph", "plan-1"] = "basic",
         session_id: Optional[str] = None
     ):
         """Stream chat response in SSE format with client disconnect detection.
@@ -114,6 +115,9 @@ class ChatService:
         # Route to appropriate agent handler
         if agent_type == "langgraph":
             async for chunk in self._stream_langgraph_response(client, user_message, request, actual_session_id):
+                yield chunk
+        elif agent_type == "plan-1":
+            async for chunk in self._stream_plan_response(client, user_message, request, actual_session_id):
                 yield chunk
         else:
             async for chunk in self._stream_basic_response(client, user_message, request, actual_session_id):
@@ -249,6 +253,120 @@ class ChatService:
                     node_name = event.get("node", "unknown")
                     yield "event: node_end\n"
                     yield f"data: {json.dumps({'node': node_name})}\n\n"
+                
+                elif event_type == "tool_start":
+                    # Send tool start event
+                    tool_name = event.get("tool", "unknown")
+                    tool_input = event.get("input", {})
+                    yield "event: tool_start\n"
+                    yield f"data: {json.dumps({'tool': tool_name, 'input': tool_input})}\n\n"
+                
+                elif event_type == "tool_end":
+                    # Send tool end event
+                    tool_name = event.get("tool", "unknown")
+                    tool_output = event.get("output", "")
+                    yield "event: tool_end\n"
+                    yield f"data: {json.dumps({'tool': tool_name, 'output': tool_output})}\n\n"
+            
+            # Save assistant response to session history
+            if accumulated_response:
+                self.session_store.add_message(session_id, 'assistant', accumulated_response)
+            
+            # Send end event only if not disconnected
+            if not await request.is_disconnected():
+                yield "event: end\n"
+                yield f"data: {json.dumps({'status': 'completed', 'session_id': session_id})}\n\n"
+        
+        except GeneratorExit:
+            # Client disconnected - save partial response if any
+            if accumulated_response:
+                self.session_store.add_message(session_id, 'assistant', accumulated_response)
+            return
+        except Exception as e:
+            # Send error event only if client is still connected
+            if not await request.is_disconnected():
+                error_msg = str(e)
+                # Check if it's an authentication error
+                if "401" in error_msg or "unauthorized" in error_msg.lower() or "authorization" in error_msg.lower():
+                    error_msg = (
+                        "Authentication failed. Please check your API key configuration. "
+                        "Ensure that the LLM_API_KEY environment variable is set correctly in your settings.yaml file."
+                    )
+                error_data = json.dumps({"error": error_msg})
+                yield f"event: error\n"
+                yield f"data: {error_data}\n\n"
+    
+    async def _stream_plan_response(
+        self,
+        client: LLMClient,
+        user_message: str,
+        request: Request,
+        session_id: str
+    ):
+        """Stream Plan-1 agent response with planning and execution tracking.
+        
+        Args:
+            client: LLMClient instance.
+            user_message: User's message content.
+            request: FastAPI Request object for disconnect detection.
+            session_id: Session ID for conversation history.
+            
+        Yields:
+            SSE formatted strings for streaming response.
+        """
+        accumulated_response = ""
+        
+        try:
+            # Send start event with session_id
+            yield "event: start\n"
+            yield f"data: {json.dumps({'status': 'started', 'session_id': session_id})}\n\n"
+            
+            # Get conversation history from session
+            history_messages = self.session_store.get_langchain_messages(session_id)
+            
+            # Create Plan-1 agent
+            agent = create_plan_agent(client)
+            
+            # Stream the agent response with history
+            async for event in agent.astream_with_history(user_message, history_messages):
+                # Check if client disconnected
+                if await request.is_disconnected():
+                    break
+                
+                event_type = event.get("type")
+                
+                if event_type == "token":
+                    # Stream token content
+                    content = event.get("content", "")
+                    if content:
+                        accumulated_response += content
+                        content_json = json.dumps(content)
+                        yield f"data: {content_json}\n\n"
+                
+                elif event_type == "node_start":
+                    # Send node start event for graph visualization
+                    node_name = event.get("node", "unknown")
+                    yield "event: node_start\n"
+                    yield f"data: {json.dumps({'node': node_name})}\n\n"
+                
+                elif event_type == "node_end":
+                    # Send node end event for graph visualization
+                    node_name = event.get("node", "unknown")
+                    yield "event: node_end\n"
+                    yield f"data: {json.dumps({'node': node_name})}\n\n"
+                
+                elif event_type == "plan_created":
+                    # Send plan created event
+                    plan = event.get("plan", [])
+                    yield "event: plan_created\n"
+                    yield f"data: {json.dumps({'plan': plan})}\n\n"
+                
+                elif event_type == "plan_step_completed":
+                    # Send plan step completed event
+                    step_number = event.get("step_number", 0)
+                    description = event.get("description", "")
+                    yield "event: plan_step_completed\n"
+                    yield f"data: {json.dumps({'step_number': step_number, 'description': description})}\n\n"
                 
                 elif event_type == "tool_start":
                     # Send tool start event

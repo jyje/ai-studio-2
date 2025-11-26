@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useChatStream } from './hooks/useChatStream';
-import { getChatApiUrl, fetchModelsList, ModelsListResponse, LLMProfile } from '../config';
+import { getChatApiUrl, fetchModelsList, ModelsListResponse, LLMProfile, AGENT_TYPES } from '../config';
 import { useTranslation } from '@/app/i18n/hooks/useTranslation';
 import MessageBubble from './components/MessageBubble';
 import ChatInput from './components/ChatInput';
@@ -224,12 +224,13 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col w-full max-w-full md:max-w-2xl lg:max-w-4xl py-24 mx-auto stretch px-4">
-      {/* Agent Graph Panel - floating, show when enabled and LangGraph selected */}
-      {selectedAgentType === 'langgraph' && showAgentGraph && (
+      {/* Agent Graph Panel - floating, show when enabled and agent has graph support */}
+      {showAgentGraph && AGENT_TYPES.find(a => a.value === selectedAgentType)?.hasGraph && (
         <AgentGraphPanel 
           currentNode={currentNode} 
           isLoading={isLoading} 
           onClose={() => setShowAgentGraph(false)}
+          agentType={selectedAgentType}
         />
       )}
       

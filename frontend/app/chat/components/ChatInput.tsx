@@ -321,8 +321,8 @@ export default function ChatInput({
                         </button>
                       );
                     })}
-                    {/* Show Agent Graph checkbox - only for LangGraph */}
-                    {selectedAgentType === 'langgraph' && onToggleAgentGraph && (
+                    {/* Show Agent Graph checkbox - only for agents with graph support */}
+                    {AGENT_TYPES.find(a => a.value === selectedAgentType)?.hasGraph && onToggleAgentGraph && (
                       <>
                         <div className="border-t border-gray-200 dark:border-[#3e3e42] my-1" />
                         <label

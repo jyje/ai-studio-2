@@ -320,21 +320,26 @@ export function useChatStream(options: ChatStreamOptions): ChatStreamReturn {
             }
             continue;
           } else if (eventType === 'tool_start') {
-            // Tool is starting
+            // Tool is starting - update graph visualization to show TOOL node active
             try {
               const toolData = JSON.parse(data);
               console.log(`[DEBUG] Tool start: ${toolData.tool}`, toolData.input);
               handleToolStart(toolData.tool, toolData.input || {});
+              // Set current node to TOOL/tools for graph visualization
+              // Use 'TOOL' for plan-1 agent, 'tools' for langgraph agent
+              setCurrentNode(selectedAgentType === 'plan-1' ? 'TOOL' : 'tools');
             } catch (e) {
               console.error('Failed to parse tool_start data:', e);
             }
             continue;
           } else if (eventType === 'tool_end') {
-            // Tool finished
+            // Tool finished - update graph visualization back to agent node
             try {
               const toolData = JSON.parse(data);
               console.log(`[DEBUG] Tool end: ${toolData.tool}`, toolData.output);
               handleToolEnd(toolData.tool, toolData.output || '');
+              // Tool finished, will go back to agent/MAIN node
+              setCurrentNode(selectedAgentType === 'plan-1' ? 'MAIN' : 'agent');
             } catch (e) {
               console.error('Failed to parse tool_end data:', e);
             }
