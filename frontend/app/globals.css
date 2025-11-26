@@ -347,6 +347,43 @@ html.dark {
   overflow-wrap: anywhere;
 }
 
+/* Force light mode table styles */
+html:not(.dark) .markdown-content table,
+html.light .markdown-content table {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+
+html:not(.dark) .markdown-content thead,
+html.light .markdown-content thead {
+  background-color: #f3f4f6 !important;
+}
+
+html:not(.dark) .markdown-content tbody,
+html.light .markdown-content tbody {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .markdown-content tr,
+html.light .markdown-content tr {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
+html:not(.dark) .markdown-content th,
+html.light .markdown-content th {
+  background-color: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+html:not(.dark) .markdown-content td,
+html.light .markdown-content td {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
 /* User and system message bubbles - ensure long URLs break */
 /* Only apply to message bubbles, not all max-w-[80%] elements */
 .bg-blue-500.max-w-\[80\%\],

@@ -783,7 +783,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   table: ({ children }) => {
                     return (
                       <div className="overflow-x-auto my-4">
-                        <table className="min-w-full border-collapse border border-gray-300 dark:border-[#3e3e42]">
+                        <table className="min-w-full border-collapse border border-gray-300 dark:border-[#3e3e42] bg-white dark:bg-transparent">
                           {children}
                         </table>
                       </div>
@@ -805,21 +805,21 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   },
                   tr: ({ children }) => {
                     return (
-                      <tr className="border-b border-gray-200 dark:border-[#3e3e42]">
+                      <tr className="border-b border-gray-200 dark:border-[#3e3e42] bg-white dark:bg-transparent">
                         {children}
                       </tr>
                     );
                   },
                   th: ({ children }) => {
                     return (
-                      <th className="border border-gray-300 dark:border-[#3e3e42] px-4 py-2 text-left font-semibold text-black dark:text-black">
+                      <th className="border border-gray-300 dark:border-[#3e3e42] px-4 py-2 text-left font-semibold bg-gray-100 dark:bg-transparent text-gray-900 dark:text-black">
                         {children}
                       </th>
                     );
                   },
                   td: ({ children }) => {
                     return (
-                      <td className="border border-gray-300 dark:border-[#3e3e42] px-4 py-2 text-black dark:text-black">
+                      <td className="border border-gray-300 dark:border-[#3e3e42] px-4 py-2 bg-white dark:bg-transparent text-gray-900 dark:text-black">
                         {children}
                       </td>
                     );
