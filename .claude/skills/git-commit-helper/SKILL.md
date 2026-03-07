@@ -62,7 +62,10 @@ Only use the following approved types and emojis:
 ## 4. Strict Constraints
 - **Agent Autonomy**: You MUST NOT arbitrarily execute commit or push commands before the user approves. All execution must wait for explicit user consent.
 - **Language**: The commit message and any detailed explanations of changes MUST be in English only. Do NOT use Korean.
-- **No Proactive Staging**: You MUST NOT stage changes (e.g., `git add .`) unless explicitly requested by the user. Propose a commit message based only on what the user has staged, or inform them if nothing is staged.
+- **Staging Intelligence**: Use this logic for proposing messages:
+  1. If STAGE IS EMPTY: Consider all changes (as if `git add .` were to be run).
+  2. If STAGE IS NOT EMPTY: Strictly consider ONLY the staged changes.
+  3. AGENT MUST NOT execute `git add` or stage files proactively.
 - **Privacy & Security**: NEVER include local paths, sensitive environment variables, or other local/sensitive information in the commit messages or detailed descriptions.
 
 ---

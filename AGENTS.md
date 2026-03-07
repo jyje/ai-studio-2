@@ -6,38 +6,31 @@ This is a monorepo with separate frontend and backend applications:
 
 ```
 ai-studio-2/
-├── frontend/          # Next.js frontend application
-│   ├── app/          # Next.js app directory
-│   ├── package.json  # Frontend dependencies
-│   ├── Dockerfile    # Production Dockerfile (multi-stage)
-│   ├── Dockerfile.dev # Development Dockerfile (with debugging)
-│   └── .gitignore    # Frontend-specific ignore rules
-├── backend/          # FastAPI backend application
-│   ├── app/          # Backend application code
-│   ├── pyproject.toml # Backend dependencies (uv)
-│   ├── Dockerfile    # Production Dockerfile (multi-stage)
-│   ├── Dockerfile.dev # Development Dockerfile (with debugging)
-│   └── .gitignore    # Backend-specific ignore rules
-├── docker/           # Docker configuration
+├── frontend/             # Frontend applications
+│   ├── next/             # Next.js frontend application
+│   └── vue/              # Vue frontend application
+├── backend/              # Backend applications
+│   └── fastapi/          # FastAPI backend application
+├── docker/               # Docker configuration
 │   ├── docker-compose.yaml      # Production compose
 │   └── docker-compose.dev.yaml  # Development compose
-└── .gitignore        # Root-level ignore rules
+└── .gitignore            # Root-level ignore rules
 ```
 
 ## Package Management
 
 ### Frontend (Next.js)
 - **Package Manager**: npm
-- **Dependency File**: `frontend/package.json`
-- **Installation**: `cd frontend && npm install`
-- **Management Area**: All files under `frontend/` directory
+- **Dependency File**: `frontend/next/package.json`
+- **Installation**: `cd frontend/next && npm install`
+- **Management Area**: All files under `frontend/next/` directory
 - **Node Version**: 24 (specified in Dockerfiles)
 
 ### Backend (FastAPI)
 - **Package Manager**: uv
-- **Dependency File**: `backend/pyproject.toml`
-- **Installation**: `cd backend && uv pip install -e .`
-- **Management Area**: All files under `backend/` directory
+- **Dependency File**: `backend/fastapi/pyproject.toml`
+- **Installation**: `cd backend/fastapi && uv pip install -e .`
+- **Management Area**: All files under `backend/fastapi/` directory
 - **Python Version**: 3.14+
 - **Note**: `requirements.txt` is NOT used. All dependencies must be managed in `pyproject.toml`
 
@@ -97,7 +90,7 @@ const getBackendBaseUrl = (): string => {
 The project follows a layered architecture:
 
 ```
-frontend/app/
+frontend/next/app/
 ├── config.ts                  # Configuration settings (top-level)
 ├── chat/
 │   ├── Chat.tsx              # Main chat container component
@@ -285,7 +278,7 @@ frontend/app/
 - **Hydration Safety**: Initialize with default locale, update in `useEffect` to avoid mismatch
 
 ### Adding Translations
-1. Add translation keys to `frontend/app/i18n/locales/ko.ts` and `en.ts`
+1. Add translation keys to `frontend/next/app/i18n/locales/ko.ts` and `en.ts`
 2. Use nested object structure for organization
 3. Access via `t('path.to.key')` in components
 
@@ -318,7 +311,7 @@ frontend/app/
 
 The backend uses LangChain for LLM integration with a pool-based configuration system managed via `settings.yaml`.
 
-#### Configuration File: `backend/settings.yaml`
+#### Configuration File: `backend/fastapi/settings.yaml`
 
 LLM profiles are defined in a flat list structure (depth 1):
 
@@ -371,7 +364,7 @@ llm_list:
 
 #### Implementation Details
 
-- LLM Pool is managed by `LLMList` class in `backend/app/chat/llm_client.py`
+- LLM Pool is managed by `LLMList` class in `backend/fastapi/app/chat/llm_client.py`
 - LangChain integration uses `ChatOpenAI` for OpenAI and `ChatAzureOpenAI` for Azure OpenAI
 - Provider type determines which LangChain class is instantiated (if/elif logic)
 - Streaming is enabled by default for all providers

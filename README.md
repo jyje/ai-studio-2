@@ -63,56 +63,17 @@ A modern, full-stack AI chat application built with Next.js and FastAPI, featuri
 
 ```
 ai-studio-2/
-├── backend/              # FastAPI backend application
-│   ├── app/
-│   │   ├── main.py      # API routes and streaming logic
-│   │   └── config.py    # Configuration (API keys, model settings)
-│   ├── Dockerfile       # Production Dockerfile (multi-stage)
-│   ├── Dockerfile.dev   # Development Dockerfile (with debugging)
-│   ├── .dockerignore    # Docker build ignore rules
-│   ├── .gitignore       # Backend-specific ignore rules
-│   └── pyproject.toml   # Python dependencies (uv)
-│
-├── frontend/            # Next.js frontend application
-│   ├── app/
-│   │   ├── chat/        # Chat components and logic
-│   │   │   ├── Chat.tsx              # Main chat container
-│   │   │   ├── components/           # UI components
-│   │   │   │   ├── ChatInput.tsx     # Input form with textarea
-│   │   │   │   ├── MessageBubble.tsx # Message display with markdown
-│   │   │   │   └── ErrorMessage.tsx  # Error display
-│   │   │   └── hooks/
-│   │   │       ├── useChatStream.ts  # Streaming logic
-│   │   │       └── types.ts          # TypeScript types
-│   │   ├── components/  # Shared components
-│   │   │   ├── SettingsButton.tsx    # Settings trigger
-│   │   │   ├── SettingsModal.tsx     # Language settings
-│   │   │   └── ContextMenu.tsx       # Context menu component
-│   │   ├── i18n/        # Internationalization
-│   │   │   ├── locales/              # Translation files
-│   │   │   │   ├── ko.ts             # Korean translations
-│   │   │   │   ├── en.ts             # English translations
-│   │   │   │   └── index.ts          # Locale exports
-│   │   │   ├── hooks/
-│   │   │   │   └── useTranslation.ts # Translation hook
-│   │   │   ├── context/
-│   │   │   │   └── I18nContext.tsx   # i18n context provider
-│   │   │   └── config.ts             # i18n configuration
-│   │   ├── config.ts    # Frontend configuration
-│   │   └── page.tsx     # Main page entry point
-│   ├── Dockerfile       # Production Dockerfile (multi-stage)
-│   ├── Dockerfile.dev   # Development Dockerfile (with debugging)
-│   ├── .dockerignore    # Docker build ignore rules
-│   ├── .gitignore       # Frontend-specific ignore rules
-│   └── package.json     # Node.js dependencies
-│
-├── docker/              # Docker configuration
+├── backend/              # Backend applications
+│   └── fastapi/          # FastAPI backend application
+├── frontend/             # Frontend applications
+│   ├── next/             # Next.js frontend application
+│   └── vue/              # Vue frontend application (initialized via Vite)
+├── docker/               # Docker configuration
 │   ├── docker-compose.yaml      # Production compose
 │   └── docker-compose.dev.yaml  # Development compose
-│
-├── .gitignore           # Root-level ignore rules
-├── AGENTS.md            # Development guidelines
-└── README.md            # This file
+├── .gitignore            # Root-level ignore rules
+├── AGENTS.md             # Development guidelines
+└── README.md             # This file
 ```
 
 ## 🛠️ Tech Stack
@@ -148,7 +109,7 @@ ai-studio-2/
 
 1. Navigate to backend directory:
 ```bash
-cd backend
+cd backend/fastapi
 ```
 
 2. Install dependencies using uv:
@@ -175,7 +136,7 @@ The backend will be available at `http://127.0.0.1:8000`
 
 1. Navigate to frontend directory:
 ```bash
-cd frontend
+cd frontend/next
 ```
 
 2. Install dependencies:
@@ -195,6 +156,25 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:3000`
+
+#### Vue Frontend Setup
+
+1. Navigate to the Vue frontend directory:
+```bash
+cd frontend/vue
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Run the development server:
+```bash
+npm run dev
+```
+
+The Vue frontend will be available at the local URL provided by Vite configuration.
 
 ### Docker Setup
 
@@ -238,21 +218,21 @@ docker-compose up --build
 
 ### Backend Configuration
 
-Edit `backend/app/config.py` or set environment variables:
+Edit `backend/fastapi/app/config.py` or set environment variables:
 - `LLM_API_BASE_URL`: API endpoint URL
 - `LLM_API_KEY`: API authentication key
 - `LLM_MODEL_NAME`: Model identifier
 
 ### Frontend Configuration
 
-Edit `frontend/app/config.ts` or set environment variables:
+Edit `frontend/next/app/config.ts` or set environment variables:
 - `NEXT_PUBLIC_BACKEND_URL`: Backend API URL (default: `http://127.0.0.1:8000`)
 
 **Note**: Use `127.0.0.1` instead of `localhost` to avoid IPv6/IPv4 resolution issues.
 
 ### Next.js Configuration
 
-`frontend/next.config.ts`:
+`frontend/next/next.config.ts`:
 - Standalone output mode for production Docker builds
 - Image optimization enabled
 
@@ -291,9 +271,9 @@ Edit `frontend/app/config.ts` or set environment variables:
 
 ### Adding New Languages
 
-1. Create a new translation file in `frontend/app/i18n/locales/`
+1. Create a new translation file in `frontend/next/app/i18n/locales/`
 2. Export translations matching the structure in `ko.ts` or `en.ts`
-3. Add the locale to `frontend/app/i18n/config.ts`
+3. Add the locale to `frontend/next/app/i18n/config.ts`
 4. Update the settings modal to include the new language
 
 ### Translation Structure
@@ -429,4 +409,4 @@ See [LICENSE](LICENSE) file for details.
 
 ---
 
-Built with ❤️ using Next.js and FastAPI
+Built with ❤️ using Next.js, Vue.js, and FastAPI

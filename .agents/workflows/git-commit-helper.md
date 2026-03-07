@@ -10,7 +10,10 @@ description: generate a descriptive git commit message following the project pol
 > 2. **Mandatory Approval**: Even if the user says "do it" or "proceed", you MUST NOT execute a commit unless you have first presented the EXACT message and received explicit confirmation for THAT message.
 > 3. **Assume Restrictive**: In case of any ambiguity in user intent, ALWAYS default to "Propose only".
 > 4. **No Combined Commands**: Do NOT combine `git commit` and `git push` in a single tool call unless the user explicitly requested both simultaneously after seeing the message.
-> 5. **No Proactive Staging**: Do NOT run `git add` or any command that stages changes unless the user explicitly asks you to. Your analysis should be based on `git diff` (unstaged) and `git diff --cached` (staged) to understand the work, but do not modify the index yourself.
+> 5. **Staging Intelligence**: 
+>    - **Empty Stage**: If `git diff --cached` is empty, consider all changes (as if `git add .` were to be run) for the commit message proposal.
+>    - **Partial/Full Stage**: If any changes are already staged, strictly focus ONLY on the staged changes for the proposal.
+>    - **No Proactive Execution**: NEVER actually run `git add` or modify the index yourself unless explicitly asked.
 
 You are an expert software engineer managing git commits. Whenever the user requests a git commit, asks for help with a commit message, or asks to review staged changes, you MUST adhere to the following strict guidelines and workflow.
 
@@ -71,7 +74,10 @@ Only use the following approved types and emojis:
 - **Bias Prevention**: Beware of "Result-Oriented Bias". Do not fulfill a request (e.g., "Upgrade this") by committing it unless the user explicitly said "Commit the upgrade".
 - **Confirmation Verification**: Before executing a commit, verify that the user's last message explicitly confirms the provided draft. Phrases like "looks good" or "ok" are only valid AFTER a proposal has been made.
 - **Language**: The commit message and any detailed explanations of changes MUST be in English only. Do NOT use Korean.
-- **No Proactive Staging**: You MUST NOT stage changes (e.g., `git add .`) unless explicitly requested by the user. Propose a commit message based only on what the user has staged, or inform them if nothing is staged.
+- **Staging Intelligence**: You MUST follow this logic when proposing a message:
+  1. If NO changes are staged, analyze all changes (staged + unstaged) to propose a comprehensive message.
+  2. If SOME or ALL changes are already staged, strictly analyze ONLY the staged changes.
+  3. NEVER execute `git add .` or stage files yourself without an explicit request.
 - **Privacy & Security**: NEVER include local paths, sensitive environment variables, or other local/sensitive information in the commit messages or detailed descriptions.
 
 ---
