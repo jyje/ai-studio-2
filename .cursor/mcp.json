@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "ai-elements": {
+            "args": [
+                "-y",
+                "mcp-remote",
+                "https://registry.ai-sdk.dev/api/mcp"
+            ],
+            "command": "npx"
+        }
+    }
+}
