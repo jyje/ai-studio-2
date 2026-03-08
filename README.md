@@ -82,7 +82,7 @@ ai-studio-2/
 - **FastAPI**: Modern Python web framework
 - **OpenAI SDK**: OpenAI-compatible API client
 - **Uvicorn**: ASGI server
-- **Python 3.14+**: Runtime environment
+- **Python 3.12**: Runtime environment
 - **uv**: Python package manager
 
 ### Frontend
@@ -98,8 +98,8 @@ ai-studio-2/
 ## 🚦 Getting Started
 
 ### Prerequisites
-- **Python 3.14+** with `uv` package manager
-- **Node.js 24+** with `npm`
+- **Python 3.12** with `uv` package manager
+- **Node.js 24+** with `pnpm`
 - **Docker** (optional, for containerized deployment)
 - **OpenAI-compatible API** (or OpenAI API key)
 
@@ -114,7 +114,7 @@ cd backend/fastapi
 
 2. Install dependencies using uv:
 ```bash
-uv pip install -e .
+uv sync
 ```
 
 3. Configure environment variables:
@@ -127,7 +127,7 @@ export LLM_MODEL_NAME="gpt-4"  # or your model name
 
 4. Run the development server:
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run fastapi dev app/main.py --port 8000
 ```
 
 The backend will be available at `http://127.0.0.1:8000`
@@ -141,7 +141,7 @@ cd frontend/next
 
 2. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 3. Configure environment variables (optional):
@@ -152,10 +152,10 @@ NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000
 
 4. Run the development server:
 ```bash
-npm run dev
+pnpm dev
 ```
 
-The frontend will be available at `http://localhost:3000`
+The frontend will be available at `http://localhost:4000`
 
 #### Vue Frontend Setup
 
@@ -166,15 +166,15 @@ cd frontend/vue
 
 2. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
-3. Run the development server:
+4. Run the development server:
 ```bash
-npm run dev
+pnpm dev
 ```
 
-The Vue frontend will be available at the local URL provided by Vite configuration.
+The Vue frontend will be available at `http://localhost:3000`
 
 ### Docker Setup
 
@@ -196,7 +196,8 @@ docker-compose -f docker-compose.dev.yaml up --build
 - Development dependencies included
 
 **Access:**
-- Frontend: `http://localhost:3000`
+- Next.js: `http://localhost:4000`
+- Vue.js: `http://localhost:3000`
 - Backend: `http://127.0.0.1:8000` (use 127.0.0.1, not localhost)
 
 #### Production Environment

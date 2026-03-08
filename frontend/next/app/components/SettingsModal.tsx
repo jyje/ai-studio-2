@@ -5,6 +5,7 @@ import { useTranslation } from '../i18n/hooks/useTranslation';
 import { Locale, supportedLocales, localeNames } from '../i18n/config';
 import { useTheme, Theme } from '../theme/context/ThemeContext';
 import { useSettings, AgentGraphDisplayMode } from '../settings/context/SettingsContext';
+import { getBackendBaseUrl } from '../config';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -17,6 +18,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const [showAgentGraphDisplayDropdown, setShowAgentGraphDisplayDropdown] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
   const themeDropdownRef = useRef<HTMLDivElement>(null);
   const agentGraphDisplayDropdownRef = useRef<HTMLDivElement>(null);
@@ -71,6 +74,31 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
   const handleAgentGraphDisplayModeChange = (mode: AgentGraphDisplayMode) => {
     setAgentGraphDisplayMode(mode);
     setShowAgentGraphDisplayDropdown(false);
+  };
+
+  const handleRefreshConfiguration = async () => {
+    setIsRefreshing(true);
+    setRefreshMessage(null);
+    try {
+      const baseUrl = getBackendBaseUrl();
+      const response = await fetch(`${baseUrl}/v2/reload`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reload configuration');
+      }
+
+      setRefreshMessage({ type: 'success', text: t('settings.refreshSuccess') || 'Configuration reloaded successfully' });
+
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setRefreshMessage(null), 3000);
+    } catch (error) {
+      console.error('Error refreshing configuration:', error);
+      setRefreshMessage({ type: 'error', text: t('settings.refreshError') || 'Failed to reload configuration' });
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const themeOptions: { value: Theme; label: string }[] = [
@@ -139,9 +167,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
               >
                 <span className="text-sm text-gray-900 dark:text-[#cccccc]">{localeNames[locale]}</span>
                 <svg
-                  className={`w-4 h-4 text-gray-500 dark:text-[#858585] transition-transform duration-200 ${
-                    showLanguageDropdown ? 'rotate-180' : ''
-                  }`}
+                  className={`w-4 h-4 text-gray-500 dark:text-[#858585] transition-transform duration-200 ${showLanguageDropdown ? 'rotate-180' : ''
+                    }`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -156,11 +183,10 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                       key={loc}
                       type="button"
                       onClick={() => handleLocaleChange(loc)}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors cursor-pointer ${
-                        locale === loc
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                          : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc]'
-                      }`}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors cursor-pointer ${locale === loc
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc]'
+                        }`}
                     >
                       <span>{localeNames[loc]}</span>
                       {locale === loc && (
@@ -192,9 +218,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
               >
                 <span className="text-sm text-gray-900 dark:text-[#cccccc]">{getThemeLabel(theme)}</span>
                 <svg
-                  className={`w-4 h-4 text-gray-500 dark:text-[#858585] transition-transform duration-200 ${
-                    showThemeDropdown ? 'rotate-180' : ''
-                  }`}
+                  className={`w-4 h-4 text-gray-500 dark:text-[#858585] transition-transform duration-200 ${showThemeDropdown ? 'rotate-180' : ''
+                    }`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -209,11 +234,10 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                       key={option.value}
                       type="button"
                       onClick={() => handleThemeChange(option.value)}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors cursor-pointer ${
-                        theme === option.value
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                          : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc]'
-                      }`}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors cursor-pointer ${theme === option.value
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc]'
+                        }`}
                     >
                       <span>{option.label}</span>
                       {theme === option.value && (
@@ -247,9 +271,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                   {getAgentGraphDisplayLabel(settings.agentGraphDisplayMode)}
                 </span>
                 <svg
-                  className={`w-4 h-4 text-gray-500 dark:text-[#858585] transition-transform duration-200 ${
-                    showAgentGraphDisplayDropdown ? 'rotate-180' : ''
-                  }`}
+                  className={`w-4 h-4 text-gray-500 dark:text-[#858585] transition-transform duration-200 ${showAgentGraphDisplayDropdown ? 'rotate-180' : ''
+                    }`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -264,11 +287,10 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                       key={option.value}
                       type="button"
                       onClick={() => handleAgentGraphDisplayModeChange(option.value)}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors cursor-pointer ${
-                        settings.agentGraphDisplayMode === option.value
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                          : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc]'
-                      }`}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors cursor-pointer ${settings.agentGraphDisplayMode === option.value
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc]'
+                        }`}
                     >
                       <span>{option.label}</span>
                       {settings.agentGraphDisplayMode === option.value && (
@@ -286,6 +308,38 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Refresh Configuration Button */}
+        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-[#3e3e42]">
+          <button
+            type="button"
+            onClick={handleRefreshConfiguration}
+            disabled={isRefreshing}
+            className={`w-full flex justify-center py-2.5 px-4 rounded-lg font-medium text-white transition-colors cursor-pointer ${isRefreshing
+              ? 'bg-blue-400 dark:bg-blue-600/50 cursor-not-allowed'
+              : 'bg-blue-500 hover:bg-blue-600 dark:bg-[#007acc] dark:hover:bg-[#005999]'
+              }`}
+          >
+            {isRefreshing ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {t('settings.refreshing') || 'Refreshing...'}
+              </span>
+            ) : (
+              t('settings.refreshConfig') || 'Refresh Configuration'
+            )}
+          </button>
+
+          {refreshMessage && (
+            <p className={`mt-2 text-sm text-center ${refreshMessage.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              }`}>
+              {refreshMessage.text}
+            </p>
+          )}
         </div>
       </div>
     </div>

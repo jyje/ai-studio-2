@@ -45,7 +45,7 @@ export interface ChatStreamOptions {
   onError?: (error: Error) => void;
   t?: (key: string) => string;
   model?: string; // Optional: profile name or model name
-  provider?: 'openai' | 'azureopenai'; // Optional: provider name
+  provider?: 'openai' | 'azureopenai' | 'nvidia_ai_endpoints'; // Optional: provider name
   agentType?: AgentType; // Optional: agent type (basic or langgraph)
 }
 

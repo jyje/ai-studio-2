@@ -25,7 +25,7 @@ export const AGENT_TYPES: { value: AgentType; label: string; description: string
 /**
  * Get backend URL from environment variables or use default value
  */
-const getBackendBaseUrl = (): string => {
+export const getBackendBaseUrl = (): string => {
   // Use environment variable if available, otherwise use default development value
   if (typeof window !== 'undefined') {
     // Client-side: environment variable or default value

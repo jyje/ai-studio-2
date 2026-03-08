@@ -19,19 +19,19 @@ ai-studio-2/
 
 ## Package Management
 
-### Frontend (Next.js)
-- **Package Manager**: npm
-- **Dependency File**: `frontend/next/package.json`
-- **Installation**: `cd frontend/next && npm install`
-- **Management Area**: All files under `frontend/next/` directory
+### Frontend (Next.js & Vue.js)
+- **Package Manager**: pnpm
+- **Installation**: `cd frontend/[next|vue] && pnpm install`
+- **Development**: `pnpm dev`
+- **Ports**: Next.js (4000), Vue.js (3000)
 - **Node Version**: 24 (specified in Dockerfiles)
 
 ### Backend (FastAPI)
 - **Package Manager**: uv
 - **Dependency File**: `backend/fastapi/pyproject.toml`
-- **Installation**: `cd backend/fastapi && uv pip install -e .`
-- **Management Area**: All files under `backend/fastapi/` directory
-- **Python Version**: 3.14+
+- **Installation**: `cd backend/fastapi && uv sync`
+- **Development**: in-short `uv run fastapi dev`, full `uv run fastapi dev app/main.py --port 8000`
+- **Python Version**: 3.12
 - **Note**: `requirements.txt` is NOT used. All dependencies must be managed in `pyproject.toml`
 
 ## Code Style and Conventions
@@ -301,9 +301,27 @@ frontend/next/app/
 - **Ignore Files**: Each directory has its own `.gitignore` for specific patterns
 - **Root Ignore**: Root `.gitignore` for common files (OS, IDE, logs)
 
+## Frontend Mirror Development
+The project maintains two frontend implementations: Next.js and Vue.js. They MUST remain identical in features and UI.
+
+### Parity Rules
+- **Synchronized Features**: Any feature added to `frontend/next` must also be implemented in `frontend/vue`.
+- **UI Consistency**: Use the same Tailwind CSS classes and layout structures.
+- **Package Mirroring**: Use framework-specific equivalents for libraries (e.g., `@ai-sdk/react` vs `@ai-sdk/vue`).
+- **Same Backend**: Both frontends must consume the same FastAPI endpoints from `backend/fastapi`.
+
+For detailed implementation rules, refer to `.agents/rules/frontend-mirror-development.md`.
+
 ### Commit Messages
 - **Language**: Use English for commit messages
 - **Format**: Follow conventional commit format when possible
+
+## Workflows
+
+The following workflows are available for automated development tasks:
+
+- **/git-commit-helper**: Generate a descriptive git commit message following the project policy and commit/push changes.
+- **/lint-python**: Run `ruff` and `ty` to lint and type check the FastAPI backend project.
 
 ## Backend LLM Configuration
 
