@@ -193,7 +193,7 @@ export default function ChatInput({
                 </span>
                 {showProfileDropdown && allProfiles.length > 0 && (
                   <div
-                    className="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[200px]"
+                    className="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[320px]"
                     onMouseEnter={() => {
                       if (hoverTimeoutRef.current) {
                         clearTimeout(hoverTimeoutRef.current);
@@ -211,7 +211,7 @@ export default function ChatInput({
                     {allProfiles.map((profile) => {
                       const isAvailable = profile.available !== false; // Default to true if not specified
                       const isSelected = selectedLLM?.name === profile.name;
-                      
+
                       return (
                         <button
                           key={profile.name}
@@ -222,13 +222,12 @@ export default function ChatInput({
                             }
                           }}
                           disabled={!isAvailable}
-                          className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                            !isAvailable
-                              ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600'
-                              : isSelected
+                          className={`w-full text-left px-3 py-2 text-sm transition-colors ${!isAvailable
+                            ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600'
+                            : isSelected
                               ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer'
                               : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc] cursor-pointer'
-                          } ${profile.default ? 'font-semibold' : ''}`}
+                            } ${profile.default ? 'font-semibold' : ''}`}
                         >
                           <div className="flex items-center justify-between">
                             <span>{profile.name}</span>
@@ -246,7 +245,7 @@ export default function ChatInput({
                             </div>
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                            {profile.provider} / {profile.model}
+                            {profile.model_creator}
                           </div>
                         </button>
                       );
@@ -280,7 +279,7 @@ export default function ChatInput({
                 </span>
                 {showAgentDropdown && (
                   <div
-                    className="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 min-w-[200px]"
+                    className="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 min-w-[240px]"
                     onMouseEnter={() => {
                       if (agentHoverTimeoutRef.current) {
                         clearTimeout(agentHoverTimeoutRef.current);
@@ -297,7 +296,7 @@ export default function ChatInput({
                   >
                     {AGENT_TYPES.map((agent) => {
                       const isSelected = selectedAgentType === agent.value;
-                      
+
                       return (
                         <button
                           key={agent.value}
@@ -308,11 +307,10 @@ export default function ChatInput({
                             }
                             setShowAgentDropdown(false);
                           }}
-                          className={`w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${
-                            isSelected
-                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'
-                              : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc]'
-                          }`}
+                          className={`w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${isSelected
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                            : 'hover:bg-gray-100 dark:hover:bg-[#2d2d30] text-gray-900 dark:text-[#cccccc]'
+                            }`}
                         >
                           <div className="font-medium">{t(`chatInput.agentType.${agent.value}`)}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -347,19 +345,17 @@ export default function ChatInput({
             </div>
           )}
         </div>
-        <div className={`relative overflow-hidden transition-all duration-200 ${
-          showSendButton || showAbortButton
-            ? 'opacity-100 scale-100 translate-x-0 ml-2 w-auto'
-            : 'opacity-0 scale-95 translate-x-2 ml-0 w-0 pointer-events-none'
-        } ${modelInfo ? 'mb-6' : ''}`}>
+        <div className={`relative overflow-hidden transition-all duration-200 ${showSendButton || showAbortButton
+          ? 'opacity-100 scale-100 translate-x-0 ml-2 w-auto'
+          : 'opacity-0 scale-95 translate-x-2 ml-0 w-0 pointer-events-none'
+          } ${modelInfo ? 'mb-6' : ''}`}>
           {/* Send Button */}
           <button
             type="submit"
-            className={`absolute inset-0 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl whitespace-nowrap transition-all duration-200 px-3 py-2 cursor-pointer ${
-              showSendButton
-                ? 'opacity-100 scale-100 translate-x-0 pointer-events-auto'
-                : 'opacity-0 scale-95 translate-x-2 pointer-events-none'
-            }`}
+            className={`absolute inset-0 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl whitespace-nowrap transition-all duration-200 px-3 py-2 cursor-pointer ${showSendButton
+              ? 'opacity-100 scale-100 translate-x-0 pointer-events-auto'
+              : 'opacity-0 scale-95 translate-x-2 pointer-events-none'
+              }`}
             title={t('chatInput.title.send')}
             disabled={!showSendButton}
           >
@@ -369,11 +365,10 @@ export default function ChatInput({
           <button
             type="button"
             onClick={onAbort}
-            className={`absolute inset-0 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl whitespace-nowrap transition-all duration-200 px-3 py-2 cursor-pointer ${
-              showAbortButton
-                ? 'opacity-100 scale-100 translate-x-0 pointer-events-auto'
-                : 'opacity-0 scale-95 -translate-x-2 pointer-events-none'
-            }`}
+            className={`absolute inset-0 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl whitespace-nowrap transition-all duration-200 px-3 py-2 cursor-pointer ${showAbortButton
+              ? 'opacity-100 scale-100 translate-x-0 pointer-events-auto'
+              : 'opacity-0 scale-95 -translate-x-2 pointer-events-none'
+              }`}
             title={t('chatInput.title.abort')}
           >
             {t('chatInput.button.abort')}

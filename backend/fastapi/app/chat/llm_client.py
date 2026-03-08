@@ -238,6 +238,7 @@ class ProviderManager:
                 m_id = m_config.id
                 m_type = m_config.type
                 m_default = m_config.default
+                m_creator = m_config.creator or p_name
                 
                 # Check scanning validation
                 is_available = True
@@ -250,6 +251,7 @@ class ProviderManager:
                     'name': m_name,
                     'provider': p_type,
                     'provider_name': p_name,
+                    'model_creator': m_creator,
                     'model': m_id,
                     'base_url': p_base_url,
                     'model_type': m_type,

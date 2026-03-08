@@ -77,7 +77,8 @@ export interface ModelInfo {
  */
 export interface LLMProfile {
   name: string;
-  provider: string;
+  provider: string; // backend provider (e.g. nvidia_ai_endpoints)
+  model_creator?: string; // the creator of the model (e.g. OpenAI)
   model: string;
   base_url: string;
   default: boolean;

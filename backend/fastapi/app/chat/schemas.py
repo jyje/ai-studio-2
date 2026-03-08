@@ -41,6 +41,7 @@ class ModelInfo(BaseModel):
     name: str = Field(..., description="Profile name")
     provider: str = Field(..., description="Provider internal name")
     provider_name: str = Field(default="", description="Visual Provider name")
+    model_creator: Optional[str] = Field(default=None, description="Model Creator")
     model: str = Field(..., description="Model ID")
     base_url: str = Field(..., description="Base URL")
     model_type: str = Field(default="foundation_model", description="foundation_model or embedding_model")

@@ -66,6 +66,7 @@ def get_models() -> ModelsListResponse:
                 'name': profile_data.get('name', ''),
                 'provider': profile_data.get('provider', ''),
                 'provider_name': profile_data.get('provider_name', ''),
+                'model_creator': profile_data.get('model_creator', ''),
                 'model': profile_data.get('model', ''),
                 'base_url': profile_data.get('base_url', ''),
                 'model_type': profile_data.get('model_type', 'foundation_model'),

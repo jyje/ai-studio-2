@@ -5,6 +5,7 @@ class LLMModelConfig(BaseModel):
     """Configuration for individual LLM models (foundation or embedding)."""
     type: str
     name: str
+    creator: Optional[str] = None
     id: str
     default: bool = False
 

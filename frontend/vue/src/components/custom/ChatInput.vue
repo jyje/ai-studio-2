@@ -157,7 +157,7 @@ const onAgentLeave = () => {
             <!-- Model Dropdown -->
             <div
               v-if="showProfileDropdown && allProfiles.length > 0"
-              class="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[200px]"
+              class="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[320px]"
               @mouseenter="onModelEnter"
               @mouseleave="onModelLeave"
             >
@@ -187,7 +187,7 @@ const onAgentLeave = () => {
                   </div>
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  {{ profile.provider }} / {{ profile.model }}
+                  {{ profile.model_creator }}
                 </div>
               </button>
             </div>
@@ -210,7 +210,7 @@ const onAgentLeave = () => {
             <!-- Agent Dropdown -->
             <div
               v-if="showAgentDropdown"
-              class="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 min-w-[200px]"
+              class="absolute bottom-full left-0 mb-2 bg-white dark:bg-[#252526] border border-gray-300 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 min-w-[240px]"
               @mouseenter="onAgentEnter"
               @mouseleave="onAgentLeave"
             >
