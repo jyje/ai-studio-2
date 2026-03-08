@@ -109,6 +109,20 @@ def get_graph_structure(agent_type: str = "langgraph") -> GraphStructureResponse
     return GraphStructureResponse(nodes=nodes, edges=edges)
 
 
+@router.post('/reload')
+def reload_settings() -> dict:
+    """Reload application settings and LLM profiles dynamically.
+    
+    This endpoint forces a reload of settings.yaml and re-initializes
+    the LLM client pool without requiring a server restart.
+    """
+    try:
+        llm_list.reload()
+        return {"status": "success", "message": "Settings reloaded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reload settings: {str(e)}")
+
+
 @router.post('/chat')
 async def chat(request: Request, chat_request: ChatRequest):
     """Stream chat response in SSE format.

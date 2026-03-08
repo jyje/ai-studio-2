@@ -4,6 +4,7 @@ import os
 import re
 from typing import Optional, Dict, List
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.messages import HumanMessage
 from app.config import settings
 
@@ -18,13 +19,14 @@ class LLMClient:
         model: str,
         base_url: str,
         api_key: str,
-        default: bool = False
+        default: bool = False,
+        max_tokens: int = 10000
     ):
         """Initialize LangChain chat model with configuration.
         
         Args:
             name: Profile name identifier.
-            provider: Provider name ('openai' or 'azureopenai').
+            provider: Provider name ('openai', 'azureopenai', or 'nvidia_ai_endpoints').
             model: Model name.
             base_url: Base URL for the API (acts as entrypoint for Azure OpenAI).
             api_key: API key for authentication.
@@ -36,6 +38,7 @@ class LLMClient:
         self.base_url = base_url
         self.api_key = api_key
         self.default = default
+        self.max_tokens = max_tokens
         
         # Initialize LangChain chat model based on provider
         if provider == 'openai':
@@ -43,9 +46,10 @@ class LLMClient:
             self.llm = ChatOpenAI(
                 model=model,
                 openai_api_key=api_key,
-                openai_api_base=base_url,
+                openai_api_base=base_url if base_url else None,
                 streaming=True,
                 temperature=0.7,
+                max_tokens=max_tokens,
             )
         elif provider == 'azureopenai':
             # Use ChatAzureOpenAI for Azure OpenAI
@@ -59,6 +63,17 @@ class LLMClient:
                 openai_api_key=api_key,
                 streaming=True,
                 temperature=0.7,
+                max_tokens=max_tokens,
+            )
+        elif provider == 'nvidia_ai_endpoints':
+            # Use ChatNVIDIA for NVIDIA AI Endpoints
+            self.llm = ChatNVIDIA(
+                model=model,
+                nvidia_api_key=api_key,
+                base_url=base_url if base_url else None,
+                streaming=False,
+                temperature=0.7,
+                max_tokens=max_tokens,
             )
         else:
             raise ValueError(f"Unsupported provider: {provider}")
@@ -96,6 +111,7 @@ class LLMClient:
             'model': self.model,
             'base_url': self.base_url,
             'default': self.default,
+            'max_tokens': self.max_tokens,
         }
 
 
@@ -107,6 +123,19 @@ class LLMList:
         self.profiles: Dict[str, LLMClient] = {}  # {profile_name: LLMClient}
         self.default_client: Optional[LLMClient] = None
         self.raw_config: List[Dict] = []  # Store raw config from settings.yaml
+        self._load_from_settings()
+        
+    def reload(self):
+        """Reload LLM configurations from settings.yaml."""
+        # Clear existing profiles
+        self.profiles.clear()
+        self.raw_config.clear()
+        self.default_client = None
+        
+        # Reload dynaconf settings
+        settings.reload()
+        
+        # Load from updated settings
         self._load_from_settings()
     
     def _resolve_env_var(self, value: str) -> str:
@@ -168,9 +197,15 @@ class LLMList:
             # Resolve environment variables if dynaconf didn't do it
             base_url = self._resolve_env_var(base_url_raw)
             api_key = self._resolve_env_var(api_key_raw)
+            max_tokens = profile_config.get('max_tokens', 10000)
             
             # Validate required fields after environment variable resolution
-            if not name or not provider or not model or not base_url or not api_key:
+            # base_url is optional for openai and nvidia_ai_endpoints
+            is_valid = name and provider and model and api_key
+            if provider == 'azureopenai':
+                is_valid = is_valid and base_url
+            
+            if not is_valid:
                 # Skip profiles with missing required fields or unresolved env vars
                 import warnings
                 warnings.warn(
@@ -186,7 +221,8 @@ class LLMList:
                     model=model,
                     base_url=base_url,
                     api_key=api_key,
-                    default=default
+                    default=default,
+                    max_tokens=max_tokens
                 )
                 
                 self.profiles[name] = client
@@ -225,7 +261,7 @@ class LLMList:
         """Get LLM client by provider and model name.
         
         Args:
-            provider: Provider name ('openai' or 'azureopenai').
+            provider: Provider name ('openai', 'azureopenai', or 'nvidia_ai_endpoints').
             model: Model name.
             
         Returns:
@@ -272,6 +308,7 @@ class LLMList:
                 'model': profile_config.get('model', ''),
                 'base_url': profile_config.get('base_url', ''),
                 'default': profile_config.get('default', False),
+                'max_tokens': profile_config.get('max_tokens', 10000),
             }
             # Check if this profile is actually initialized (available)
             is_available = profile_dict['name'] in self.profiles

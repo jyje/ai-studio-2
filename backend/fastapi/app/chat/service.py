@@ -2,7 +2,7 @@
 
 import uuid
 from typing import Literal, Optional
-from fastapi import Request, HTTPException
+from fastapi import Request
 import json
 from app.chat.llm_client import llm_list, LLMClient
 from app.chat.langgraph_agent import create_react_agent
@@ -83,7 +83,7 @@ class ChatService:
             user_message: User's message content.
             model: Model name or profile name to use for the completion.
             request: FastAPI Request object for disconnect detection.
-            provider: Optional provider name ('openai' or 'azureopenai'). 
+            provider: Optional provider name ('openai', 'azureopenai', or 'nvidia_ai_endpoints'). 
                      If None, searches by model name only.
             agent_type: Type of agent to use ('basic' or 'langgraph').
             session_id: Optional session ID for multi-turn conversation.
@@ -192,7 +192,7 @@ class ChatService:
                         "Ensure that the LLM_API_KEY environment variable is set correctly in your settings.yaml file."
                     )
                 error_data = json.dumps({"error": error_msg})
-                yield f"event: error\n"
+                yield "event: error\n"
                 yield f"data: {error_data}\n\n"
     
     async def _stream_langgraph_response(
@@ -308,7 +308,7 @@ class ChatService:
                         "Ensure that the LLM_API_KEY environment variable is set correctly in your settings.yaml file."
                     )
                 error_data = json.dumps({"error": error_msg})
-                yield f"event: error\n"
+                yield "event: error\n"
                 yield f"data: {error_data}\n\n"
     
     async def _generate_suggestions(
@@ -608,7 +608,7 @@ class ChatService:
                         "Ensure that the LLM_API_KEY environment variable is set correctly in your settings.yaml file."
                     )
                 error_data = json.dumps({"error": error_msg})
-                yield f"event: error\n"
+                yield "event: error\n"
                 yield f"data: {error_data}\n\n"
 
 

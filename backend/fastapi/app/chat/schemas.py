@@ -13,9 +13,9 @@ class ChatRequest(BaseModel):
     
     message: str = Field(..., description="User message content")
     model: str = Field(..., description="Profile name or model name to use")
-    provider: Optional[Literal["openai", "azureopenai"]] = Field(
+    provider: Optional[Literal["openai", "azureopenai", "nvidia_ai_endpoints"]] = Field(
         default=None,
-        description="Optional LLM provider (openai or azureopenai). If not specified, searches by model name."
+        description="Optional LLM provider (openai, azureopenai, or nvidia_ai_endpoints). If not specified, searches by model name."
     )
     agent_type: AgentType = Field(
         default="langgraph",

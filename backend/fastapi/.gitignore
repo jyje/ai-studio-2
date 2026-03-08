@@ -45,6 +45,7 @@ ENV/
 htmlcov/
 .tox/
 .hypothesis/
+.ruff_cache/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -67,3 +68,5 @@ cython_debug/
 *.log
 logs/
 
+# Dynaconf
+settings.yaml
