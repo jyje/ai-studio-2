@@ -15,7 +15,7 @@ from app.chat.schemas import (
 from app.chat.llm_client import llm_list
 from app.chat.langgraph_agent import create_react_agent
 from app.chat.plan_agent import create_plan_agent
-from app.config import settings
+from app.configs import settings
 
 router = APIRouter(prefix="/v2", tags=["chat"])
 
@@ -50,6 +50,10 @@ def get_models() -> ModelsListResponse:
     providers_order = []  # Maintain order of providers as they appear in settings.yaml
     
     for profile_data in all_profiles:
+        # Skip embedding models for front-end selection
+        if profile_data.get('model_type') == 'embedding_model':
+            continue
+            
         provider = profile_data.get('provider')
         if provider:
             # Add provider to order list only if not already added
@@ -57,13 +61,16 @@ def get_models() -> ModelsListResponse:
                 providers_order.append(provider)
             if provider not in models_info:
                 models_info[provider] = []
-            # Only include available fields for ModelInfo
+            
             profile_info = {
                 'name': profile_data.get('name', ''),
                 'provider': profile_data.get('provider', ''),
+                'provider_name': profile_data.get('provider_name', ''),
                 'model': profile_data.get('model', ''),
                 'base_url': profile_data.get('base_url', ''),
+                'model_type': profile_data.get('model_type', 'foundation_model'),
                 'default': profile_data.get('default', False),
+                'available': profile_data.get('available', True),
             }
             models_info[provider].append(ModelInfo(**profile_info))
     

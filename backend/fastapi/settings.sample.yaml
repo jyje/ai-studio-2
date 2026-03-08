@@ -1,0 +1,53 @@
+providers:
+  -
+    name: NVIDIA Official AI Endpoint
+    type: nvidia_ai_endpoints
+    base_url: https://integrate.api.nvidia.com/v1
+    api_key: ${NVIDIA_API_KEY_HERE}
+    config:
+      scan_models: true
+      scan_models_endpoint: /models
+    models:
+      # Foundation Models
+      -
+        type: foundation_model
+        provider: OpenAI
+        name: GPT OSS 120B
+        id: openai/gpt-oss-120b
+        default: true
+      -
+        type: foundation_model
+        provider: OpenAI
+        name: GPT OSS 20B
+        id: openai/gpt-oss-20b
+      -
+        type: foundation_model
+        provider: Alibaba
+        name: Qwen 3.5 112B A10B
+        id: qwen/qwen3.5-122b-a10b
+      -
+        type: foundation_model
+        provider: Alibaba
+        name: Qwen 3.5 397B A17B
+        id: qwen/qwen3.5-397b-a17b
+      -
+        type: foundation_model
+        provider: Z-AI
+        name: GLM 5
+        id: z-ai/glm5
+      -
+        type: foundation_model
+        provider: Upstage
+        name: Solar 10.7B Instruct
+        id: upstage/solar-10.7b-instruct
+
+      # Embedding_model
+      -
+        type: embedding_model
+        name: Llama Nemotron Embed VL 1B V2
+        id: nvidia/llama-nemotron-embed-1b-v2
+
+# Application Settings
+app:
+  name: AI Studio 2.0
+  agent: AI Studio 2.0

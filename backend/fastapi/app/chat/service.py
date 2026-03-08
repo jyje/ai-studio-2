@@ -4,10 +4,13 @@ import uuid
 from typing import Literal, Optional
 from fastapi import Request
 import json
+import logging
 from app.chat.llm_client import llm_list, LLMClient
 from app.chat.langgraph_agent import create_react_agent
 from app.chat.plan_agent import create_plan_agent
 from app.chat.memory_store import session_store
+
+logger = logging.getLogger("uvicorn")
 
 
 class ChatService:
@@ -414,7 +417,7 @@ class ChatService:
             
         except Exception as e:
             # Fallback to rule-based suggestions if LLM fails
-            print(f"[WARNING] Failed to generate LLM suggestions: {e}")
+            logger.warning(f"Failed to generate LLM suggestions: {e}")
             return self._get_fallback_suggestions(user_message, response, tools_used)
     
     def _get_fallback_suggestions(self, user_message: str, response: str, tools_used: list) -> list:

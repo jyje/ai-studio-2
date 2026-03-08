@@ -1,15 +1,15 @@
 """
-Configuration settings for the backend application using dynaconf.
+Configuration namespace for managing typed settings.
 
-Configuration is loaded from settings.yaml file.
+Configuration is loaded from settings.yaml file using dynaconf.
 Environment variables can override settings using dynaconf syntax.
 """
 
 from pathlib import Path
 from dynaconf import Dynaconf
 
-# Get the backend directory (parent of app directory)
-BACKEND_DIR = Path(__file__).parent.parent
+# Get the backend directory (parent of app directory, then parent of configs)
+BACKEND_DIR = Path(__file__).parent.parent.parent
 SETTINGS_FILE = BACKEND_DIR / 'settings.yaml'
 
 # Initialize dynaconf settings

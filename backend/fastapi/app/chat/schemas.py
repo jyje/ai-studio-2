@@ -39,10 +39,13 @@ class ModelInfo(BaseModel):
     """Schema for individual model/profile information."""
     
     name: str = Field(..., description="Profile name")
-    provider: str = Field(..., description="Provider name")
-    model: str = Field(..., description="Model name")
-    base_url: str = Field(..., description="Base URL (acts as entrypoint for Azure OpenAI)")
+    provider: str = Field(..., description="Provider internal name")
+    provider_name: str = Field(default="", description="Visual Provider name")
+    model: str = Field(..., description="Model ID")
+    base_url: str = Field(..., description="Base URL")
+    model_type: str = Field(default="foundation_model", description="foundation_model or embedding_model")
     default: bool = Field(default=False, description="Whether this is the default profile")
+    available: bool = Field(default=True, description="Whether this model was successfully scanned/verified")
 
 
 class ModelsListResponse(BaseModel):
