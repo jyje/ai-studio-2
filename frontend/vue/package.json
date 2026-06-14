@@ -35,7 +35,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^0.577.0",
-    "postcss": "^8.5.10",
+    "postcss": "^8.5.15",
     "radix-vue": "^1.9.17",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^3.4.19",
